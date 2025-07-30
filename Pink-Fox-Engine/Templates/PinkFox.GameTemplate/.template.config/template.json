@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Alexis 'I SpiTfire U' Hann",
+  "classifications": [ "SDL3", "Game", "PinkFox" ],
+  "name": "PinkFox Game",
+  "identity": "PinkFox.GameTemplate",
+  "shortName": "pinkfoxgame",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "PinkFox.GameTemplate",
+  "preferNameDirectory": true
+}

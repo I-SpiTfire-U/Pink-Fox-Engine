@@ -1,0 +1,45 @@
+# Build output
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.db
+*.log
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio settings
+.vs/
+.vscode/
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Rider
+.idea/
+*.sln.iml
+ 
+# OS-generated
+.DS_Store
+Thumbs.db
+desktop.ini 
+
+bin/
+obj/
+.vs/
