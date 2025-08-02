@@ -1,8 +1,9 @@
+using PinkFox.Core.Interfaces;
 using SDL3;
 
 namespace PinkFox.Input.InputDevices;
 
-public class Keyboard
+public class Keyboard : IKeyboard
 {
     private readonly HashSet<SDL.Keycode> _keysDown = [];
     private readonly HashSet<SDL.Keycode> _keysUp = [];
@@ -15,11 +16,13 @@ public class Keyboard
         {
             _keysDown.Add(e.Key.Key);
             _keysHeld.Add(e.Key.Key);
+            Console.WriteLine($"Key down: {e.Key.Key}");
         }
         else if (eventType == SDL.EventType.KeyUp)
         {
             _keysUp.Add(e.Key.Key);
             _keysHeld.Remove(e.Key.Key);
+            Console.WriteLine($"Key up: {e.Key.Key}");
         }
     }
 

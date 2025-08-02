@@ -1,27 +1,55 @@
+using PinkFox.Core.Interfaces;
+
 namespace PinkFox.Core.Scenes;
 
 public static class SceneManager
 {
-    private static IScene? _ActiveScene;
+    public static IScene? ActiveScene;
+    private static Action? _ExitAction;
 
-    public static void LoadScene(IScene scene, nint renderer)
+    public static void SetExitAction(Action action)
     {
-        _ActiveScene = scene;
-        _ActiveScene.LoadContent();
+        if (ActiveScene is not null && _ExitAction is not null)
+        {
+            ActiveScene.OnRequestExit -= _ExitAction;
+        }
+
+        _ExitAction = action;
+
+        if (ActiveScene is not null)
+        {
+            ActiveScene.OnRequestExit += _ExitAction;
+        }
+    }
+
+    public static void LoadScene(IScene scene)
+    {
+        ActiveScene?.Dispose();
+        ActiveScene = scene;
+        if (_ExitAction is not null)
+        {
+            ActiveScene.OnRequestExit += _ExitAction;
+        }
+    }
+
+    public static void UnloadScene()
+    {
+        ActiveScene?.Dispose();
+        ActiveScene = null;
     }
 
     public static void Update(float deltaTime)
     {
-        _ActiveScene?.Update(deltaTime);
+        ActiveScene?.Update(deltaTime);
     }
 
     public static void FixedUpdate()
     {
-        _ActiveScene?.FixedUpdate();
+        ActiveScene?.FixedUpdate();
     }
 
     public static void Draw(nint renderer)
     {
-        _ActiveScene?.Draw(renderer);
+        ActiveScene?.Draw(renderer);
     }
 }

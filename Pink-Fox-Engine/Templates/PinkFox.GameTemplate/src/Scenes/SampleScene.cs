@@ -1,22 +1,13 @@
-using PinkFox.Graphics.Basic;
 using PinkFox.Core.Scenes;
 
 namespace PinkFox.GameTemplate.Scenes;
 
-public class SampleScene : IScene
+public class SampleScene : IScene, IDisposable
 {
-    private readonly Image2D _LexiImage;
+    private bool _Disposed;
+    public event Action? OnRequestExit;
 
-    public SampleScene(nint renderer)
-    {
-        _LexiImage = new(0, 0, @"C:\Users\Lex\Downloads\518244405_2539279199798114_3918589501245530234_n.jpg", renderer, 0.5f);
-    }
-
-    public void LoadContent()
-    {
-        // Load game assets and content below:
-
-    }
+    public SampleScene(nint renderer) { }
 
     public void Update(float deltaTime)
     {
@@ -33,8 +24,30 @@ public class SampleScene : IScene
     public void Draw(nint renderer)
     {
         // Draw graphics to the screen below:
-        _LexiImage.Draw(renderer);
+
     }
 
-    public event Action? OnRequestExit;
+    public void OnWindowResize(int width, int height)
+    {
+        // Adjust camera, UI elements, screen-space effects, etc.
+        
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_Disposed)
+        {
+            return;
+        }
+        
+        if (disposing) { }
+
+        _Disposed = true;
+    }
 }

@@ -11,4 +11,8 @@
     <PackageReference Include="SDL3-CS" Version="3.2.18" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
+  </ItemGroup>
+
 </Project>
