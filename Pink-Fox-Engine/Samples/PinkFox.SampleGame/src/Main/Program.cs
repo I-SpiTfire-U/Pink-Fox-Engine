@@ -8,7 +8,6 @@ namespace PinkFox.SampleGame.Main;
 
 public class Program
 {
-    [STAThread]
     public static void Main()
     {
         const int DefaultWindowWidth = 800;
