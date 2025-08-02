@@ -77,6 +77,6 @@ public class InputManager : IInputManager
     {
         Keyboard.Clear();
         Mouse.Clear();
-        Gamepads.UpdateGamepads();
+        Gamepads.Update();
     }
 }

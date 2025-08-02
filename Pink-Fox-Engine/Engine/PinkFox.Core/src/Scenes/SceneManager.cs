@@ -26,6 +26,8 @@ public static class SceneManager
     {
         ActiveScene?.Dispose();
         ActiveScene = scene;
+        ActiveScene.LoadContent();
+        
         if (_ExitAction is not null)
         {
             ActiveScene.OnRequestExit += _ExitAction;

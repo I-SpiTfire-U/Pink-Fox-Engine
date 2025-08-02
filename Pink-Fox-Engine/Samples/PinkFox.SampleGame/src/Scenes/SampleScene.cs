@@ -4,11 +4,13 @@ using PinkFox.Core.Interfaces;
 using PinkFox.Graphics.Rendering;
 using PinkFox.Graphics.Cameras;
 using System.Numerics;
+using PinkFox.Core;
 
 namespace PinkFox.SampleGame.Scenes;
 
 public class SampleScene : IScene, IDisposable
 {
+    protected Font BasicFont = new(@"Assets\Fonts\arial.ttf", 16f);
     protected IInputManager InputManager;
     protected IAudioManager AudioManager;
     protected List<Sprite2D> GameObjects;
@@ -18,19 +20,22 @@ public class SampleScene : IScene, IDisposable
     private bool _Disposed;
     public event Action? OnRequestExit;
 
+    public float CurrentFPS = 0f;
+    private float _FPSTimer = 0f;
+    private int _FrameCount = 0;
+
     public SampleScene(nint renderer, int windowWidth, int windowHeight, IInputManager inputManager, IAudioManager audioManager)
     {
-        Camera = new(1f, 0.1f, 5f);
-        Camera.SetViewSize(windowWidth, windowHeight);
-
         InputManager = inputManager;
         AudioManager = audioManager;
 
-        Texture2D playerTexture = new(@"Assets\Images\Standing.png", renderer);
-        Texture2D playerJumpTexture = new(@"Assets\Images\Jumping.png", renderer);
-        PlayerObject = new(playerTexture, 0f, 0f, 500f, 400f, 400f, 400f, scale: 0.3f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None);
-        PlayerObject.SetJumpTexture(playerJumpTexture);
+        Camera = new(1f, 0.1f, 5f);
+        Camera.SetViewSize(windowWidth, windowHeight);
 
+        Texture2D playerTexture = new(@"Assets\Images\SpriteAtlas.png", renderer);
+        PlayerObject = new(playerTexture, 0f, 0f, 500f, 400f, 400f, 400f, scale: 0.3f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None);
+        Animation playerAnimation = new(266, 266, 2);
+        PlayerObject.Animation = playerAnimation;
         GameObjects = [];
 
         Texture2D groundTexture = new(@"C:\Users\Lex\Media\Pictures\Saved Pictures\1748496217430.jpg", renderer);
@@ -39,19 +44,30 @@ public class SampleScene : IScene, IDisposable
         Sprite2D WallSprite = new(groundTexture, -32f, 80f, scaleX: 0.03f, scaleY: 1f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None);
 
         GameObjects.AddRange(GroundSprite, RoofSprite, WallSprite);
+    }
 
+    public void LoadContent()
+    {
+        // TODO: Load game content below:
+
+        // Audio
         AudioManager.LoadSound("Jump", @"Assets\Audio\Jump.wav");
         AudioManager.LoadTrack("Louvre Museum Invasion", @"Assets\Audio\Louvre Museum Invasion.mp3");
 
         AudioManager.SetSoundVolume("Jump", 0.3f);
         AudioManager.SetMusicVolume(0.1f);
-
-        AudioManager.PlayMusic("Louvre Museum Invasion");
     }
 
     public void Update(float deltaTime)
     {
-        // Update game objects and code below:
+        // TODO: Update game objects and code below:
+
+        UpdateFPS(deltaTime);
+
+        if (!AudioManager.IsMusicPlaying)
+        {
+            AudioManager.PlayMusic("Louvre Museum Invasion");
+        }
 
         PlayerObject.Update(deltaTime, GameObjects, InputManager, AudioManager);
 
@@ -59,7 +75,7 @@ public class SampleScene : IScene, IDisposable
         {
             Camera.ChangeZoom(1f * deltaTime);
         }
-        if (InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Down)  || (InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.LeftShoulder) ?? false))
+        if (InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Down) || (InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.LeftShoulder) ?? false))
         {
             Camera.ChangeZoom(-1f * deltaTime);
         }
@@ -79,13 +95,13 @@ public class SampleScene : IScene, IDisposable
 
     public void FixedUpdate()
     {
-        // Update physics code and fixed values here:
+        // TODO: Update physics code and fixed values here:
 
     }
 
     public void Draw(nint renderer)
     {
-        // Draw graphics to the screen below:
+        // TODO: Draw graphics to the screen below:
 
         PlayerObject.Draw(renderer, Camera);
 
@@ -93,11 +109,28 @@ public class SampleScene : IScene, IDisposable
         {
             sprite.Draw(renderer, Camera);
         }
+
+        BasicFont.DrawText(renderer, $"FPS: {CurrentFPS:F2}");
+    }
+
+    private void UpdateFPS(float deltaTime)
+    {
+        _FrameCount++;
+        _FPSTimer += deltaTime;
+
+        if (_FPSTimer < 1f)
+        {
+            return;
+        }
+
+        CurrentFPS = _FrameCount / _FPSTimer;
+        _FrameCount = 0;
+        _FPSTimer = 0f;
     }
 
     public void OnWindowResize(int width, int height)
     {
-        // Adjust camera, UI elements, screen-space effects, etc.
+        // TODO: Adjust camera, UI elements, screen-space effects, etc.
 
         Camera.SetViewSize(width, height);
     }

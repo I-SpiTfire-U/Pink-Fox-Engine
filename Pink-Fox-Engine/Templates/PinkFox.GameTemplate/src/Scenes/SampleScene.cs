@@ -9,27 +9,33 @@ public class SampleScene : IScene, IDisposable
 
     public SampleScene(nint renderer) { }
 
+    public void LoadContent()
+    {
+        // TODO: Load game content below:
+        
+    }
+
     public void Update(float deltaTime)
     {
-        // Update game objects and code below:
+        // TODO: Update game objects and code below:
 
     }
 
     public void FixedUpdate()
     {
-        // Update physics code and fixed values here:
+        // TODO: Update physics code and fixed values here:
 
     }
 
     public void Draw(nint renderer)
     {
-        // Draw graphics to the screen below:
+        // TODO: Draw graphics to the screen below:
 
     }
 
     public void OnWindowResize(int width, int height)
     {
-        // Adjust camera, UI elements, screen-space effects, etc.
+        // TODO: Adjust camera, UI elements, screen-space effects, etc.
         
     }
 

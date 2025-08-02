@@ -2,6 +2,7 @@ using SDL3;
 using PinkFox.Core.Physics;
 using System.Numerics;
 using PinkFox.Core.Interfaces;
+using System.Runtime.InteropServices;
 
 namespace PinkFox.Graphics.Rendering;
 
@@ -60,6 +61,11 @@ public class Sprite2D : IDisposable
         };
     }
 
+    public void SetSourceRect(SDL.FRect sourceRect)
+    {
+        _SourceRect = sourceRect;
+    }
+
     public void ClearSourceRect()
     {
         _SourceRect = null;
@@ -67,16 +73,13 @@ public class Sprite2D : IDisposable
 
     private static (int width, int height) GetWidthAndHeight(nint surface)
     {
-        int width;
-        int height;
-        unsafe
+        if (surface == nint.Zero)
         {
-            SDL.Surface* surf = (SDL.Surface*)surface;
-            width = surf->Width;
-            height = surf->Height;
+            return (0, 0);
         }
-
-        return (width, height);
+        
+        SDL.Surface surfaceStruct = Marshal.PtrToStructure<SDL.Surface>(surface);
+        return (surfaceStruct.Width, surfaceStruct.Height);
     }
 
     public void Draw(nint renderer, ICamera2D? camera2D = null)

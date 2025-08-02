@@ -59,6 +59,8 @@ public sealed class Engine : IDisposable
             throw new Exception("Window or Renderer creation failed.");
         }
 
+        TTF.Init();
+
         SDL.SetRenderDrawColor(_Renderer, 100, 149, 237, 0);
         AudioManager?.Init();
     }
@@ -75,7 +77,7 @@ public sealed class Engine : IDisposable
             while (SDL.PollEvent(out SDL.Event sdlEvent))
             {
                 InputManager?.ProcessEvent(sdlEvent);
-                
+
                 switch ((SDL.EventType)sdlEvent.Type)
                 {
                     case SDL.EventType.Quit:

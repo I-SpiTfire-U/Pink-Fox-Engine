@@ -7,6 +7,7 @@ namespace PinkFox.Audio;
 public class AudioManager : IAudioManager
 {
     public bool IsPaused { get; set; } = false;
+    public bool IsMusicPlaying => Mixer.PlayingMusic();
     private bool _Initialized = false;
     private nint _CurrentMusic = nint.Zero;
     private readonly ConcurrentDictionary<string, SoundEffect> _SoundEffects = new();

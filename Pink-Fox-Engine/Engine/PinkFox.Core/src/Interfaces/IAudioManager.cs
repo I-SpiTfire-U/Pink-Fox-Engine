@@ -3,6 +3,7 @@ namespace PinkFox.Core.Interfaces;
 public interface IAudioManager
 {
     bool IsPaused { get; set; }
+    bool IsMusicPlaying { get; }
 
     void Init();
     void LoadSound(string id, string path);

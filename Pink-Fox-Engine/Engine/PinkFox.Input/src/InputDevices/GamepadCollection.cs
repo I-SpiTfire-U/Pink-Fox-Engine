@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using PinkFox.Core.Interfaces;
 using SDL3;
 
@@ -8,7 +7,6 @@ public class GamepadCollection : IGamepadCollection
 {
     public int Count => _Gamepads.Count;
     public bool AreGamepadsConnected => _Gamepads.Count > 0;
-    public ReadOnlyDictionary<uint, IGamepad> Connected => new(_Gamepads);
     private readonly Dictionary<uint, IGamepad> _Gamepads = [];
 
     public void AddGamepad(uint instanceId, IGamepad gamepad)
@@ -19,21 +17,25 @@ public class GamepadCollection : IGamepadCollection
 
     public void RemoveGamepad(uint instanceId)
     {
-        if (IsGamepadConnected(instanceId))
+        if (!IsGamepadConnected(instanceId))
         {
-            _Gamepads[instanceId].Dispose();
-            _Gamepads.Remove(instanceId);
-            Console.WriteLine($"Gamepad removed: Instance ID {instanceId}");
+            return;
         }
+
+        _Gamepads[instanceId].Dispose();
+        _Gamepads.Remove(instanceId);
+        Console.WriteLine($"Gamepad removed: Instance ID {instanceId}");
     }
 
     public void ProcessEvent(uint instanceId, SDL.Event sdlEvent)
     {
-        if (IsGamepadConnected(instanceId))
+        if (!IsGamepadConnected(instanceId))
         {
-            _Gamepads[instanceId].ProcessEvent(sdlEvent);
-            Console.WriteLine($"Processed Event: Instance ID {sdlEvent.GButton.Button}");
+            return;
         }
+
+        _Gamepads[instanceId].ProcessEvent(sdlEvent);
+        Console.WriteLine($"Processed Event: Instance ID {sdlEvent.GButton.Button}");
     }
 
     public IGamepad? AtIndex(int index)
@@ -48,11 +50,7 @@ public class GamepadCollection : IGamepadCollection
 
     public bool TryGetGamepad(uint instanceId, out IGamepad? gamepad)
     {
-        if (_Gamepads.TryGetValue(instanceId, out gamepad))
-        {
-            return true;
-        }
-        return false;
+        return _Gamepads.TryGetValue(instanceId, out gamepad);
     }
 
     public bool IsGamepadConnected(uint instanceId)
@@ -60,7 +58,7 @@ public class GamepadCollection : IGamepadCollection
         return _Gamepads.ContainsKey(instanceId);
     }
 
-    public void UpdateGamepads()
+    public void Update()
     {
         foreach (IGamepad gamepad in _Gamepads.Values)
         {

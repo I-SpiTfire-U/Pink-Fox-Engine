@@ -10,6 +10,7 @@ namespace PinkFox.SampleGame;
 
 public class Player : Sprite2D
 {
+    public Animation? Animation = null;
     private float _MoveVelocity = 0f;
     private float _MoveAcceleration;
     private float _MoveVelocityMax;
@@ -17,7 +18,6 @@ public class Player : Sprite2D
     private float _Gravity;
     private float _VerticalVelocity = 0f;
     private bool _IsGrounded = false;
-    private Texture2D? _JumpTexture;
 
     public Player(Texture2D texture, float x, float y, float gravity, float jumpVelocity, float moveAcceleration, float moveVelocityMax, float scale = 1, float rotation = 0, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
     : base(texture, x, y, scale, rotation, sourceRect, flipMode, isVisible)
@@ -35,11 +35,6 @@ public class Player : Sprite2D
         _JumpVelocity = jumpVelocity;
         _MoveAcceleration = moveAcceleration;
         _MoveVelocityMax = moveVelocityMax;
-    }
-
-    public void SetJumpTexture(Texture2D texture)
-    {
-        _JumpTexture = texture;
     }
 
     public void Update(float deltaTime, List<Sprite2D> sprites, IInputManager inputManager, IAudioManager audioManager)
@@ -120,24 +115,25 @@ public class Player : Sprite2D
         {
             MoveHorizontally(_MoveVelocity * deltaTime, sprites);
         }
+
+        if (_IsGrounded)
+        {
+            Animation?.SetCurrentFrame(_MoveVelocity >= _MoveVelocityMax || _MoveVelocity <= -_MoveVelocityMax ? 2 : 0);
+        }
+        else
+        {
+            Animation?.SetCurrentFrame(1);
+        }
+
+        if (Animation is not null)
+        {
+            SetSourceRect(Animation.GetCurrentFrame());
+        }
     }
 
     public new void Draw(nint renderer, ICamera2D camera2D)
     {
-        if (_IsGrounded)
-        {
-            base.Draw(renderer, camera2D);
-            return;
-        }
-
-        // TODO: Remove this and put in an actual animation system instead.
-        if (_JumpTexture is not null)
-        {
-            Texture2D baseTexture = Texture;
-            Texture = _JumpTexture;
-            base.Draw(renderer, camera2D);
-            Texture = baseTexture;
-        }
+        base.Draw(renderer, camera2D);
     }
 
     public void Jump(float jumpVelocity, IAudioManager audioManager)
@@ -155,7 +151,6 @@ public class Player : Sprite2D
     private void MoveHorizontally(float amount, List<Sprite2D> sprites)
     {
         float x = Position.X + amount;
-        float y = Position.Y;
 
         foreach (Sprite2D sprite in sprites)
         {
@@ -177,12 +172,11 @@ public class Player : Sprite2D
             }
         }
 
-        Position = new(x, y);
+        Position = new(x, Position.Y);
     }
 
     private void MoveVertically(float amount, List<Sprite2D> sprites)
     {
-        float x = Position.X;
         float y = Position.Y + amount;
         bool isGrounded = false;
 
@@ -208,6 +202,6 @@ public class Player : Sprite2D
         }
 
         _IsGrounded = isGrounded;
-        Position = new(x, y);
+        Position = new(Position.X, y);
     }
 }

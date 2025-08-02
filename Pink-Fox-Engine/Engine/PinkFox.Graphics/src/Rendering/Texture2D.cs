@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using SDL3;
 
 namespace PinkFox.Graphics.Rendering;
@@ -54,16 +55,13 @@ public class Texture2D : IDisposable
 
     private static (int width, int height) GetWidthAndHeight(nint surface)
     {
-        int width;
-        int height;
-        unsafe
+        if (surface == nint.Zero)
         {
-            SDL.Surface* surf = (SDL.Surface*)surface;
-            width = surf->Width;
-            height = surf->Height;
+            return (0, 0);
         }
-
-        return (width, height);
+        
+        SDL.Surface surfaceStruct = Marshal.PtrToStructure<SDL.Surface>(surface);
+        return (surfaceStruct.Width, surfaceStruct.Height);
     }
 
     public static Texture2D FromSurface(nint surface, nint renderer) => new(surface, renderer);
