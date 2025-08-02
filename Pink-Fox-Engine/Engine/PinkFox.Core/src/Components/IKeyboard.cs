@@ -9,5 +9,6 @@ public interface IKeyboard
     bool IsKeyHeld(SDL.Keycode key);
 
     void ProcessEvent(SDL.Event e);
+    
     void Clear();
 }

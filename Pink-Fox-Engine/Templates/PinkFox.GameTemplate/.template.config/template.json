@@ -1,14 +1,29 @@
 {
-  "$schema": "http://json.schemastore.org/template",
-  "author": "Alexis 'I SpiTfire U' Hann",
-  "classifications": [ "SDL3", "Game", "PinkFox" ],
-  "name": "PinkFox Game",
-  "identity": "PinkFox.GameTemplate",
-  "shortName": "pinkfoxgame",
-  "tags": {
-    "language": "C#",
-    "type": "project"
-  },
-  "sourceName": "PinkFox.GameTemplate",
-  "preferNameDirectory": true
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Alexis 'I SpiTfire U' Hann",
+    "classifications": [
+        "SDL3",
+        "Game",
+        "PinkFox"
+    ],
+    "description": "A standard game project using the PinkFox game engine with SDL3.",
+    "name": "PinkFox Game",
+    "identity": "PinkFox.GameTemplate",
+    "shortName": "pinkfoxgame",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "sourceName": "PinkFox.GameTemplate",
+    "preferNameDirectory": true,
+    "symbols": {
+        "GameTitle": {
+            "type": "parameter",
+            "datatype": "text",
+            "defaultValue": "MyPinkFoxGame",
+            "replaces": "PinkFoxGame"
+        }
+    },
+    "license": "MIT",
+    "version": "1.0.0"
 }

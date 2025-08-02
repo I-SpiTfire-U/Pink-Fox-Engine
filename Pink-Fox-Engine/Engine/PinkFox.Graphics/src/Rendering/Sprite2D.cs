@@ -26,10 +26,10 @@ public class Sprite2D : IDisposable
     public Vector2 Center => new(Position.X + Width / 2f, Position.Y + Height / 2f);
     public ICollider Collider => new RectCollider(Position.X, Position.Y, Width, Height);
 
-    public Sprite2D(Texture2D texture, float x, float y, float scale = 1.0f, float rotation = 0.0f, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
+    public Sprite2D(Texture2D texture, Vector2 position, float scale = 1.0f, float rotation = 0.0f, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
     {
         Texture = texture;
-        Position = new(x, y);
+        Position = position;
         ScaleX = scale;
         ScaleY = scale;
         Rotation = rotation;
@@ -38,10 +38,10 @@ public class Sprite2D : IDisposable
         IsVisible = isVisible;
     }
 
-    public Sprite2D(Texture2D texture, float x, float y, float scaleX = 1.0f, float scaleY = 1.0f, float rotation = 0.0f, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
+    public Sprite2D(Texture2D texture, Vector2 position, float scaleX = 1.0f, float scaleY = 1.0f, float rotation = 0.0f, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
     {
         Texture = texture;
-        Position = new(x, y);
+        Position = position;
         ScaleX = scaleX;
         ScaleY = scaleY;
         Rotation = rotation;

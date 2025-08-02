@@ -37,6 +37,7 @@ public class SoundEffect : IDisposable
         _ = Mixer.VolumeChunk(Chunk, sdlVolume);
     }
 
+    #region Disposal
     public void Dispose()
     {
         Dispose(true);
@@ -61,4 +62,5 @@ public class SoundEffect : IDisposable
     {
         Dispose(false);
     }
+    #endregion
 }

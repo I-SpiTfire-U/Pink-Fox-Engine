@@ -21,6 +21,7 @@ public class MusicTrack : IDisposable
         }
     }
 
+    #region Disposal
     public void Dispose()
     {
         Dispose(true);
@@ -45,4 +46,5 @@ public class MusicTrack : IDisposable
     {
         Dispose(false);
     }
+    #endregion
 }

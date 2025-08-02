@@ -4,8 +4,9 @@ namespace PinkFox.GameTemplate.Scenes;
 
 public class SampleScene : IScene, IDisposable
 {
-    private bool _Disposed;
     public event Action? OnRequestExit;
+    
+    private bool _Disposed;
 
     public SampleScene(nint renderer) { }
 

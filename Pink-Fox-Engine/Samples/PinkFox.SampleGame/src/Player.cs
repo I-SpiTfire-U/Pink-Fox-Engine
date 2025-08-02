@@ -2,6 +2,7 @@ using PinkFox.Core.Components;
 using PinkFox.Core.Collisions;
 using PinkFox.Graphics.Rendering;
 using SDL3;
+using System.Numerics;
 
 namespace PinkFox.SampleGame;
 
@@ -16,8 +17,8 @@ public class Player : Sprite2D
     private float _VerticalVelocity = 0f;
     private bool _IsGrounded = false;
 
-    public Player(Texture2D texture, float x, float y, float gravity, float jumpVelocity, float moveAcceleration, float moveVelocityMax, float scale = 1, float rotation = 0, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
-    : base(texture, x, y, scale, rotation, sourceRect, flipMode, isVisible)
+    public Player(Texture2D texture, Vector2 position, float gravity, float jumpVelocity, float moveAcceleration, float moveVelocityMax, float scale = 1, float rotation = 0, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
+    : base(texture, position, scale, rotation, sourceRect, flipMode, isVisible)
     {
         _Gravity = gravity;
         _JumpVelocity = jumpVelocity;
@@ -25,8 +26,8 @@ public class Player : Sprite2D
         _MoveVelocityMax = moveVelocityMax;
     }
 
-    public Player(Texture2D texture, float x, float y, float gravity, float jumpVelocity, float moveAcceleration, float moveVelocityMax, float scaleX = 1, float scaleY = 1, float rotation = 0, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
-    : base(texture, x, y, scaleX, scaleY, rotation, sourceRect, flipMode, isVisible)
+    public Player(Texture2D texture, Vector2 position, float gravity, float jumpVelocity, float moveAcceleration, float moveVelocityMax, float scaleX = 1, float scaleY = 1, float rotation = 0, SDL.FRect? sourceRect = null, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
+    : base(texture, position, scaleX, scaleY, rotation, sourceRect, flipMode, isVisible)
     {
         _Gravity = gravity;
         _JumpVelocity = jumpVelocity;
@@ -124,7 +125,7 @@ public class Player : Sprite2D
 
         if (Animation is not null)
         {
-            SetSourceRect(Animation.GetCurrentFrame());
+            SetSourceRect(Animation.GetCurrentFrameRect());
         }
     }
 

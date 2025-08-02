@@ -8,9 +8,8 @@ public sealed class Engine : IDisposable
 {
     private int _TargetFPS = 60;
     private int _FixedUPS = 60;
-
-    private float _TargetFrameTime => 1.0f / _TargetFPS;
-    private float _FixedUpdateInterval => 1.0f / _FixedUPS;
+    private float TargetFrameTime => 1.0f / _TargetFPS;
+    private float FixedUpdateInterval => 1.0f / _FixedUPS;
 
     private bool _Running = true;
     private float _Accumulator;
@@ -20,9 +19,9 @@ public sealed class Engine : IDisposable
 
     private nint _Window;
     private nint _Renderer;
-    private string _WindowTitle = string.Empty;
     private int _WindowWidth;
     private int _WindowHeight;
+    private string _WindowTitle = string.Empty;
 
     public nint Renderer => _Renderer;
 
@@ -78,20 +77,18 @@ public sealed class Engine : IDisposable
             {
                 InputManager?.ProcessEvent(sdlEvent);
 
-                switch ((SDL.EventType)sdlEvent.Type)
+                SDL.EventType eventType = (SDL.EventType)sdlEvent.Type;
+                switch (eventType)
                 {
                     case SDL.EventType.Quit:
                         _Running = false;
                         return;
 
                     case SDL.EventType.WindowResized:
-                        int newWidth = sdlEvent.Window.Data1;
-                        int newHeight = sdlEvent.Window.Data2;
-                        HandleWindowResize(newWidth, newHeight);
+                        HandleWindowResize(sdlEvent.Window.Data1, sdlEvent.Window.Data2);
                         break;
                 }
             }
-
 
             if (_FirstFrame)
             {
@@ -102,10 +99,10 @@ public sealed class Engine : IDisposable
 
             SceneManager.Update(deltaTime);
 
-            while (_Accumulator >= _FixedUpdateInterval)
+            while (_Accumulator >= FixedUpdateInterval)
             {
                 SceneManager.FixedUpdate();
-                _Accumulator -= _FixedUpdateInterval;
+                _Accumulator -= FixedUpdateInterval;
             }
 
             SDL.RenderClear(_Renderer);
@@ -115,7 +112,7 @@ public sealed class Engine : IDisposable
             InputManager?.Clear();
 
             uint frameTime = (uint)(SDL.GetTicks() - nowTicks);
-            int delay = (int)(_TargetFrameTime * 1000) - (int)frameTime;
+            int delay = (int)(TargetFrameTime * 1000) - (int)frameTime;
             if (delay > 0)
             {
                 SDL.Delay((uint)delay);
@@ -129,7 +126,7 @@ public sealed class Engine : IDisposable
         _WindowHeight = height;
 
         SDL.RenderViewportSet(Renderer);
-        SceneManager.ActiveScene?.OnWindowResize(width, height);
+        SceneManager.GetActiveScene()?.OnWindowResize(width, height);
     }
 
     public void Dispose()

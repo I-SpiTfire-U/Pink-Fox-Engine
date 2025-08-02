@@ -55,17 +55,14 @@ public static class Collision
     
     public static CollisionDirection GetCollisionDirection(ICollider a, ICollider b)
     {
-        // Get centers
         float ax = a.CenterX;
         float ay = a.CenterY;
         float bx = b.CenterX;
         float by = b.CenterY;
 
-        // Estimate bounding boxes for both
         (float aLeft, float aRight, float aTop, float aBottom) = GetBounds(a);
         (float bLeft, float bRight, float bTop, float bBottom) = GetBounds(b);
 
-        // Compute overlap on each axis
         float dx = (aRight + aLeft) / 2f - (bRight + bLeft) / 2f;
         float dy = (aBottom + aTop) / 2f - (bBottom + bTop) / 2f;
 
@@ -75,13 +72,10 @@ public static class Collision
         float overlapX = combinedHalfWidths - MathF.Abs(dx);
         float overlapY = combinedHalfHeights - MathF.Abs(dy);
 
-        // Determine smallest overlap direction
         if (overlapX < overlapY)
         {
             return dx < 0 ? CollisionDirection.Right : CollisionDirection.Left;
         }
         return dy < 0 ? CollisionDirection.Bottom : CollisionDirection.Top;
     }
-
-    private static float Clamp(float val, float min, float max) => val < min ? min : val > max ? max : val;
 }

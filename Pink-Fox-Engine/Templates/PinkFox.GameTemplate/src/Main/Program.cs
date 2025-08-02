@@ -13,13 +13,14 @@ public class Program
         const int DefaultWindowHeight = 600;
 
         using Engine engine = new();
+        engine.SetTargetFPS(120);
 
         // Enable for user input when using PinkFox.Input
         // engine.InputManager = new InputManager();
 
         // Enable for audio when using PinkFox.Audio
         // engine.AudioManager = new AudioManager();
-        
+
         engine.OnStart = () =>
         {
             SceneManager.SetExitAction(engine.Stop);

@@ -8,8 +8,10 @@ public class AudioManager : IAudioManager
 {
     public bool IsPaused { get; set; } = false;
     public bool IsMusicPlaying => Mixer.PlayingMusic();
+
     private bool _Initialized = false;
     private nint _CurrentMusic = nint.Zero;
+    
     private readonly ConcurrentDictionary<string, SoundEffect> _SoundEffects = new();
     private readonly ConcurrentDictionary<string, MusicTrack> _MusicTracks = new();
 
@@ -26,7 +28,6 @@ public class AudioManager : IAudioManager
         {
             Console.WriteLine($"Mixer.Init failed for some formats. SDL Error: {SDL.GetError()}");
         }
-
         Console.WriteLine($"Mixer Init Result: {result}");
 
         SDL.AudioSpec audioSpec = new()
@@ -36,13 +37,33 @@ public class AudioManager : IAudioManager
             Channels = 2
         };
 
-        if (!Mixer.OpenAudio(SDL.AudioDeviceDefaultPlayback, audioSpec))
+        if (Mixer.OpenAudio(SDL.AudioDeviceDefaultPlayback, audioSpec))
         {
             Console.WriteLine($"Mix_OpenAudio failed: {SDL.GetError()}");
-            return;
+            _Initialized = true;
         }
+    }
 
-        _Initialized = true;
+    public void Shutdown()
+    {
+        TryEndMusic();
+
+        foreach (var sfx in _SoundEffects.Values)
+        {
+            sfx.Dispose();
+        }
+        _SoundEffects.Clear();
+
+        foreach (var track in _MusicTracks.Values)
+        {
+            track.Dispose();
+        }
+        _MusicTracks.Clear();
+
+        Mixer.CloseAudio();
+        Mixer.Quit();
+
+        _Initialized = false;
     }
 
     public void LoadSound(string id, string path)
@@ -55,7 +76,7 @@ public class AudioManager : IAudioManager
 
     public void PlaySound(string id, int loops = 0)
     {
-        if (_SoundEffects.TryGetValue(id, out var sfx))
+        if (_SoundEffects.TryGetValue(id, out SoundEffect? sfx))
         {
             sfx.Play(loops);
             return;
@@ -65,7 +86,7 @@ public class AudioManager : IAudioManager
 
     public void SetSoundVolume(string id, float volume)
     {
-        if (_SoundEffects.TryGetValue(id, out var sfx))
+        if (_SoundEffects.TryGetValue(id, out SoundEffect? sfx))
         {
             sfx.SetVolume(volume);
         }
@@ -73,7 +94,7 @@ public class AudioManager : IAudioManager
 
     public void UnloadSound(string id)
     {
-        if (_SoundEffects.TryRemove(id, out var sfx))
+        if (_SoundEffects.TryRemove(id, out SoundEffect? sfx))
         {
             sfx.Dispose();
         }
@@ -97,24 +118,25 @@ public class AudioManager : IAudioManager
 
     public void PlayMusic(string id, int numberOfLoops = 0)
     {
-        if (_MusicTracks.TryGetValue(id, out var track))
+        if (!_MusicTracks.TryGetValue(id, out MusicTrack? track))
         {
-            if (track.Track == _CurrentMusic)
-            {
-                return;
-            }
-
-            TryEndMusic();
-            _CurrentMusic = track.Track;
-
-            if (!Mixer.PlayMusic(_CurrentMusic, numberOfLoops))
-            {
-                Console.WriteLine($"Failed to play music: {SDL.GetError()}");
-                _CurrentMusic = nint.Zero;
-            }
+            Console.WriteLine($"Music Track '{id}' not loaded");
             return;
         }
-        Console.WriteLine($"Music Track '{id}' not loaded");
+        
+        if (track.Track == _CurrentMusic)
+        {
+            return;
+        }
+
+        TryEndMusic();
+        _CurrentMusic = track.Track;
+
+        if (!Mixer.PlayMusic(_CurrentMusic, numberOfLoops))
+        {
+            Console.WriteLine($"Failed to play music: {SDL.GetError()}");
+            _CurrentMusic = nint.Zero;
+        }
     }
 
     public void PauseMusic()
@@ -135,10 +157,10 @@ public class AudioManager : IAudioManager
         }
     }
 
-    public void SetMusicVolume(float volumeNormalized)
+    public void SetMusicVolume(float volume)
     {
-        volumeNormalized = Math.Clamp(volumeNormalized, 0f, 1f);
-        int sdlVolume = (int)(volumeNormalized * 128);
+        volume = Math.Clamp(volume, 0f, 1f);
+        int sdlVolume = (int)(volume * 128);
         _ = Mixer.VolumeMusic(sdlVolume);
     }
 
@@ -146,28 +168,6 @@ public class AudioManager : IAudioManager
     {
         int sdlVolume = Mixer.VolumeMusic(-1);
         return sdlVolume / 128f;
-    }
-
-    public void Shutdown()
-    {
-        TryEndMusic();
-
-        foreach (var sfx in _SoundEffects.Values)
-        {
-            sfx.Dispose();
-        }
-        _SoundEffects.Clear();
-
-        foreach (var track in _MusicTracks.Values)
-        {
-            track.Dispose();
-        }
-        _MusicTracks.Clear();
-
-        Mixer.CloseAudio();
-        Mixer.Quit();
-
-        _Initialized = false;
     }
 
     private void TryEndMusic()

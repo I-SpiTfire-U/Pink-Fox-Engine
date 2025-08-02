@@ -4,16 +4,18 @@ namespace PinkFox.Core.Components;
 
 public interface ICamera2D
 {
-    Vector2 Position { get; set; }
-    float Zoom { get; set; }
+    float Zoom { get; }
+    Vector2 Position { get; }
     int ViewWidth { get; }
     int ViewHeight { get; }
 
-    void Move(float dx, float dy);
-    void SetViewSize(int width, int height);
-    void ChangeZoom(float amount);
+    void UpdatePosition(float dx, float dy);
     void SetPosition(Vector2 position);
-    Matrix3x2 GetTransform();
+    void SetZoom(float value);
+    void UpdateZoom(float amount);
+    void SetViewSize(int width, int height);
+    
     Vector2 WorldToScreen(Vector2 worldPos);
     Vector2 ScreenToWorld(Vector2 screenPos);
+    Matrix3x2 GetTransform();
 }

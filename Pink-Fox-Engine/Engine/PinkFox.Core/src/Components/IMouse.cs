@@ -14,5 +14,6 @@ public interface IMouse
     bool IsButtonHeld(SDL.MouseButtonFlags button);
 
     void ProcessEvent(SDL.Event e);
+    
     void Clear();
 }

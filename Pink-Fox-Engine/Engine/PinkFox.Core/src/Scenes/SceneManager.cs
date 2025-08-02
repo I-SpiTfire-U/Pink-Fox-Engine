@@ -2,54 +2,60 @@ namespace PinkFox.Core.Scenes;
 
 public static class SceneManager
 {
-    public static IScene? ActiveScene;
+    private static IScene? _ActiveScene;
     private static Action? _ExitAction;
 
     public static void SetExitAction(Action action)
     {
-        if (ActiveScene is not null && _ExitAction is not null)
+        if (_ActiveScene is not null && _ExitAction is not null)
         {
-            ActiveScene.OnRequestExit -= _ExitAction;
+            _ActiveScene.OnRequestExit -= _ExitAction;
         }
 
         _ExitAction = action;
 
-        if (ActiveScene is not null)
+        if (_ActiveScene is not null)
         {
-            ActiveScene.OnRequestExit += _ExitAction;
+            _ActiveScene.OnRequestExit += _ExitAction;
         }
+    }
+
+    public static IScene? GetActiveScene()
+    {
+        return _ActiveScene;
     }
 
     public static void LoadScene(IScene scene)
     {
-        ActiveScene?.Dispose();
-        ActiveScene = scene;
-        ActiveScene.LoadContent();
+        _ActiveScene?.Dispose();
         
+        _ActiveScene = scene;
+        _ActiveScene.LoadContent();
+
         if (_ExitAction is not null)
         {
-            ActiveScene.OnRequestExit += _ExitAction;
+            _ActiveScene.OnRequestExit += _ExitAction;
         }
     }
 
     public static void UnloadScene()
     {
-        ActiveScene?.Dispose();
-        ActiveScene = null;
+        _ActiveScene?.Dispose();
+        _ActiveScene = null;
     }
 
     public static void Update(float deltaTime)
     {
-        ActiveScene?.Update(deltaTime);
+        _ActiveScene?.Update(deltaTime);
     }
 
     public static void FixedUpdate()
     {
-        ActiveScene?.FixedUpdate();
+        _ActiveScene?.FixedUpdate();
     }
 
     public static void Draw(nint renderer)
     {
-        ActiveScene?.Draw(renderer);
+        _ActiveScene?.Draw(renderer);
     }
 }

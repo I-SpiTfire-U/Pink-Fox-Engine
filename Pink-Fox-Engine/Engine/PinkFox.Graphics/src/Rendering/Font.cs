@@ -15,6 +15,11 @@ public class Font : IDisposable
     };
     private bool _Disposed;
 
+    public Font(nint font)
+    {
+        _Font = font;
+    }
+
     public Font(string filePath, float fontSize)
     {
         _Font = TTF.OpenFont(filePath, fontSize);
@@ -22,11 +27,6 @@ public class Font : IDisposable
         {
             throw new Exception($"Failed to load font from '{filePath}': {SDL.GetError()}");
         }
-    }
-
-    public Font(nint font)
-    {
-        _Font = font;
     }
 
     public void DrawText(nint renderer, string text, float x = 0f, float y = 0f)
@@ -62,17 +62,6 @@ public class Font : IDisposable
         SDL.Free(surface);
     }
 
-    public void SetColor(byte r, byte g, byte b, byte a)
-    {
-        _Color = new()
-        {
-            R = r,
-            G = g,
-            B = b,
-            A = a
-        };
-    }
-
     public void SetColor(SDL.Color color)
     {
         _Color = color;
@@ -95,7 +84,7 @@ public class Font : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool disposing)
+    protected virtual void Dispose(bool disposing)
     {
         if (_Disposed)
         {

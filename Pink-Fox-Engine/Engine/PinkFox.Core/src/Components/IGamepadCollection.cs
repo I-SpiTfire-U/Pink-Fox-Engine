@@ -7,13 +7,15 @@ public interface IGamepadCollection
     int Count { get; }
     bool AreGamepadsConnected { get; }
 
+    bool IsGamepadConnected(uint instanceId);
     void AddGamepad(uint instanceId, IGamepad gamepad);
     void RemoveGamepad(uint instanceId);
-    void ProcessEvent(uint instanceId, SDL.Event sdlEvent);
+    bool TryGetGamepad(uint instanceId, out IGamepad? gamepad);
     IGamepad? AtIndex(int index);
     IGamepad? GetFirstOrDefault();
-    bool TryGetGamepad(uint instanceId, out IGamepad? gamepad);
-    bool IsGamepadConnected(uint instanceId);
+
+    void ProcessEvent(uint instanceId, SDL.Event sdlEvent);
+
     public void Update();
     void Clear();
 }
