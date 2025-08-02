@@ -1,5 +1,3 @@
-using PinkFox.Core.Interfaces;
-
 namespace PinkFox.Core.Scenes;
 
 public interface IScene

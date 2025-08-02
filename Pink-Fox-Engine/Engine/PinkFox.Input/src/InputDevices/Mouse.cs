@@ -1,5 +1,5 @@
 using System.Numerics;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 using PinkFox.Core.Collisions;
 using SDL3;
 

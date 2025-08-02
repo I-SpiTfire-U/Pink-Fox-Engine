@@ -1,4 +1,4 @@
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 using PinkFox.Core.Scenes;
 using SDL3;
 

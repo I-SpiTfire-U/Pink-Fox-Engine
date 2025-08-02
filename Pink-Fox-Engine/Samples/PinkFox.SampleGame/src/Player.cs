@@ -1,9 +1,6 @@
-using PinkFox.Audio;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 using PinkFox.Core.Collisions;
 using PinkFox.Graphics.Rendering;
-using PinkFox.Input;
-using PinkFox.Input.InputDevices;
 using SDL3;
 
 namespace PinkFox.SampleGame;

@@ -1,6 +1,6 @@
 using SDL3;
 using PinkFox.Input.InputDevices;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 
 namespace PinkFox.Input;
 

@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 using SDL3;
 
 namespace PinkFox.Audio;

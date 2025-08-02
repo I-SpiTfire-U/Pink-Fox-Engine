@@ -1,5 +1,5 @@
 using System.Numerics;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 
 namespace PinkFox.Graphics.Cameras;
 

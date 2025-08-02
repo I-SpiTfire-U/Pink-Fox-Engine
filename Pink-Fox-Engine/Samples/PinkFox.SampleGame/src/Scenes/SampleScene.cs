@@ -1,10 +1,9 @@
 using SDL3;
 using PinkFox.Core.Scenes;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 using PinkFox.Graphics.Rendering;
 using PinkFox.Graphics.Cameras;
 using System.Numerics;
-using PinkFox.Core;
 
 namespace PinkFox.SampleGame.Scenes;
 

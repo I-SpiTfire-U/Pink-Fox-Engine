@@ -1,7 +1,7 @@
 using SDL3;
 using PinkFox.Core.Collisions;
 using System.Numerics;
-using PinkFox.Core.Interfaces;
+using PinkFox.Core.Components;
 using System.Runtime.InteropServices;
 
 namespace PinkFox.Graphics.Rendering;
