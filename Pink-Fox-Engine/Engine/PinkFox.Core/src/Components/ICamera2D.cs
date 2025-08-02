@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace PinkFox.Core.Interfaces;
+namespace PinkFox.Core.Components;
 
 public interface ICamera2D
 {

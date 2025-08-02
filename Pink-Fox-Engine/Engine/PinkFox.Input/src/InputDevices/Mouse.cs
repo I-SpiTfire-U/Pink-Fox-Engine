@@ -1,6 +1,6 @@
 using System.Numerics;
 using PinkFox.Core.Interfaces;
-using PinkFox.Core.Physics;
+using PinkFox.Core.Collisions;
 using SDL3;
 
 namespace PinkFox.Input.InputDevices;

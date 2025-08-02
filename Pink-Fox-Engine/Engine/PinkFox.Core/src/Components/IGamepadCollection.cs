@@ -1,7 +1,6 @@
-using System.Collections.ObjectModel;
 using SDL3;
 
-namespace PinkFox.Core.Interfaces;
+namespace PinkFox.Core.Components;
 
 public interface IGamepadCollection
 {

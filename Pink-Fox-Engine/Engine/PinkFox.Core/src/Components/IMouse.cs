@@ -1,8 +1,8 @@
 using System.Numerics;
-using PinkFox.Core.Physics;
+using PinkFox.Core.Collisions;
 using SDL3;
 
-namespace PinkFox.Core.Interfaces;
+namespace PinkFox.Core.Components;
 
 public interface IMouse
 {

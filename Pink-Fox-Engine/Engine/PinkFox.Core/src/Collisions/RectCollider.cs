@@ -1,4 +1,4 @@
-namespace PinkFox.Core.Physics;
+namespace PinkFox.Core.Collisions;
 
 public readonly struct RectCollider : ICollider
 {

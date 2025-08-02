@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace PinkFox.Core.Physics;
+namespace PinkFox.Core.Collisions;
 
 public static class Collision
 {

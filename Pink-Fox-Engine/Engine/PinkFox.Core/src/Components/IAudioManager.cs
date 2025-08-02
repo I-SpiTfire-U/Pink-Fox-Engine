@@ -1,4 +1,4 @@
-namespace PinkFox.Core.Interfaces;
+namespace PinkFox.Core.Components;
 
 public interface IAudioManager
 {
