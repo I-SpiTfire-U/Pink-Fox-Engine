@@ -1,4 +1,4 @@
-using SDL3;
+using SDL;
 
 namespace PinkFox.Graphics.Rendering;
 
@@ -36,17 +36,17 @@ public class Animation
         _CurrentFrame = currentFrame;
     }
 
-    public SDL.FRect GetCurrentFrameRect()
+    public SDL_FRect GetCurrentFrameRect()
     {
         int row = _CurrentFrame / _FramesPerRow;
         int column = _CurrentFrame % _FramesPerRow;
 
-        return new SDL.FRect()
+        return new SDL_FRect()
         {
-            X = column * _FrameWidth,
-            Y = row * _FrameHeight,
-            W = _FrameWidth,
-            H = _FrameHeight
+            x = column * _FrameWidth,
+            y = row * _FrameHeight,
+            w = _FrameWidth,
+            h = _FrameHeight
         };
     }
 

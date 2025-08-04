@@ -3,9 +3,16 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="SDL3-CS"
-                          Version="3.2.18" />
+        <PackageReference Include="ppy.SDL3-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_image-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_mixer-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_ttf-CS"
+                          Version="2025.703.0" />
     </ItemGroup>
 </Project>

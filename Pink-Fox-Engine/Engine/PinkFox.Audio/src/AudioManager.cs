@@ -1,16 +1,16 @@
 using System.Collections.Concurrent;
 using PinkFox.Core.Components;
-using SDL3;
+using SDL;
 
 namespace PinkFox.Audio;
 
 public class AudioManager : IAudioManager
 {
     public bool IsPaused { get; set; } = false;
-    public bool IsMusicPlaying => Mixer.PlayingMusic();
+    public bool IsMusicPlaying => SDL3_mixer.Mix_PlayingMusic();
 
     private bool _Initialized = false;
-    private nint _CurrentMusic = nint.Zero;
+    private MusicTrack? _CurrentMusic = null;
     
     private readonly ConcurrentDictionary<string, SoundEffect> _SoundEffects = new();
     private readonly ConcurrentDictionary<string, MusicTrack> _MusicTracks = new();
@@ -22,26 +22,36 @@ public class AudioManager : IAudioManager
             return;
         }
 
-        Mixer.InitFlags flags = Mixer.InitFlags.MP3 | Mixer.InitFlags.OGG;
-        Mixer.InitFlags result = Mixer.Init(flags);
-        if ((result & flags) != flags)
+        uint flags = SDL3_mixer.MIX_INIT_MP3 | SDL3_mixer.MIX_INIT_OGG | SDL3_mixer.MIX_INIT_WAVPACK;
+        uint result = SDL3_mixer.Mix_Init(flags);
+        if ((result & SDL3_mixer.MIX_INIT_MP3) == 0)
         {
-            Console.WriteLine($"Mixer.Init failed for some formats. SDL Error: {SDL.GetError()}");
+            Console.WriteLine($"Warning: MP3 format not supported.");
+        }
+        if ((result & SDL3_mixer.MIX_INIT_OGG) == 0)
+        {
+            Console.WriteLine("Warning: OGG format not supported.");
         }
         Console.WriteLine($"Mixer Init Result: {result}");
 
-        SDL.AudioSpec audioSpec = new()
+        unsafe
         {
-            Freq = 44100,
-            Format = SDL.AudioFormat.AudioS16LE,
-            Channels = 2
-        };
+            SDL_AudioSpec audioSpec = new()
+            {
+                freq = 44100,
+                format = SDL_AudioFormat.SDL_AUDIO_S16LE,
+                channels = 2
+            };
 
-        if (!Mixer.OpenAudio(SDL.AudioDeviceDefaultPlayback, audioSpec))
-        {
-            Console.WriteLine($"Mix_OpenAudio failed: {SDL.GetError()}");
-            _Initialized = true;
+            if (!SDL3_mixer.Mix_OpenAudio(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audioSpec))
+            {
+                Console.WriteLine($"Mix_OpenAudio failed: {SDL3.SDL_GetError()}");
+            }
+
+            _ = SDL3_mixer.Mix_AllocateChannels(32);
         }
+
+        _Initialized = true;
     }
 
     public void Shutdown()
@@ -60,8 +70,8 @@ public class AudioManager : IAudioManager
         }
         _MusicTracks.Clear();
 
-        Mixer.CloseAudio();
-        Mixer.Quit();
+        SDL3_mixer.Mix_CloseAudio();
+        SDL3_mixer.Mix_Quit();
 
         _Initialized = false;
     }
@@ -116,26 +126,26 @@ public class AudioManager : IAudioManager
         }
     }
 
-    public void PlayMusic(string id, int numberOfLoops = 0)
+    public unsafe void PlayMusic(string id, int numberOfLoops = 0)
     {
         if (!_MusicTracks.TryGetValue(id, out MusicTrack? track))
         {
             Console.WriteLine($"Music Track '{id}' not loaded");
             return;
         }
-        
-        if (track.Track == _CurrentMusic)
+
+        if (_CurrentMusic is not null && track.Track == _CurrentMusic.Track)
         {
             return;
         }
 
         TryEndMusic();
-        _CurrentMusic = track.Track;
+        _CurrentMusic = track;
 
-        if (!Mixer.PlayMusic(_CurrentMusic, numberOfLoops))
+        if (!SDL3_mixer.Mix_PlayMusic(_CurrentMusic.Track, numberOfLoops))
         {
-            Console.WriteLine($"Failed to play music: {SDL.GetError()}");
-            _CurrentMusic = nint.Zero;
+            Console.WriteLine($"Failed to play music: {SDL3.SDL_GetError()}");
+            _CurrentMusic = null;
         }
     }
 
@@ -143,7 +153,7 @@ public class AudioManager : IAudioManager
     {
         if (!IsPaused)
         {
-            Mixer.PauseMusic();
+            SDL3_mixer.Mix_PauseMusic();
             IsPaused = true;
         }
     }
@@ -152,7 +162,7 @@ public class AudioManager : IAudioManager
     {
         if (IsPaused)
         {
-            Mixer.ResumeMusic();
+            SDL3_mixer.Mix_ResumeMusic();
             IsPaused = false;
         }
     }
@@ -161,21 +171,26 @@ public class AudioManager : IAudioManager
     {
         volume = Math.Clamp(volume, 0f, 1f);
         int sdlVolume = (int)(volume * 128);
-        _ = Mixer.VolumeMusic(sdlVolume);
+        _ = SDL3_mixer.Mix_VolumeMusic(sdlVolume);
     }
 
-    public float GetMusicVolume()
+    public unsafe float GetMusicVolume()
     {
-        int sdlVolume = Mixer.VolumeMusic(-1);
+        if (_CurrentMusic is null)
+        {
+            return 0f;
+        }
+        
+        int sdlVolume = SDL3_mixer.Mix_VolumeMusic(-1);
         return sdlVolume / 128f;
     }
 
     private void TryEndMusic()
     {
-        if (_CurrentMusic != nint.Zero)
+        if (_CurrentMusic is not null)
         {
-            Mixer.HaltMusic();
-            _CurrentMusic = nint.Zero;
+            SDL3_mixer.Mix_HaltMusic();
+            _CurrentMusic = null;
         }
     }
 }

@@ -1,38 +1,38 @@
 using PinkFox.Core.Components;
-using SDL3;
+using SDL;
 
 namespace PinkFox.Input.InputDevices;
 
 public class Keyboard : IKeyboard
 {
-    private readonly HashSet<SDL.Keycode> _keysDown = [];
-    private readonly HashSet<SDL.Keycode> _keysUp = [];
-    private readonly HashSet<SDL.Keycode> _keysHeld = [];
+    private readonly HashSet<SDL_Keycode> _KeysDown = [];
+    private readonly HashSet<SDL_Keycode> _KeysUp = [];
+    private readonly HashSet<SDL_Keycode> _KeysHeld = [];
 
-    public void ProcessEvent(SDL.Event e)
+    public void ProcessEvent(SDL_Event sdlEvent)
     {
-        var eventType = (SDL.EventType)e.Type;
-        if ((eventType == SDL.EventType.KeyDown) && e.Key.Repeat == false)
+        SDL_EventType eventType = sdlEvent.Type;
+        if ((eventType == SDL_EventType.SDL_EVENT_KEY_DOWN) && sdlEvent.key.repeat == false)
         {
-            _keysDown.Add(e.Key.Key);
-            _keysHeld.Add(e.Key.Key);
-            Console.WriteLine($"Key down: {e.Key.Key}");
+            _KeysDown.Add(sdlEvent.key.key);
+            _KeysHeld.Add(sdlEvent.key.key);
+            Console.WriteLine($"Key down: {sdlEvent.key.key}");
         }
-        else if (eventType == SDL.EventType.KeyUp)
+        else if (eventType == SDL_EventType.SDL_EVENT_KEY_UP)
         {
-            _keysUp.Add(e.Key.Key);
-            _keysHeld.Remove(e.Key.Key);
-            Console.WriteLine($"Key up: {e.Key.Key}");
+            _KeysUp.Add(sdlEvent.key.key);
+            _KeysHeld.Remove(sdlEvent.key.key);
+            Console.WriteLine($"Key up: {sdlEvent.key.key}");
         }
     }
 
-    public bool IsKeyDown(SDL.Keycode key) => _keysDown.Contains(key);
-    public bool IsKeyUp(SDL.Keycode key) => _keysUp.Contains(key);
-    public bool IsKeyHeld(SDL.Keycode key) => _keysHeld.Contains(key);
+    public bool IsKeyDown(SDL_Keycode key) => _KeysDown.Contains(key);
+    public bool IsKeyUp(SDL_Keycode key) => _KeysUp.Contains(key);
+    public bool IsKeyHeld(SDL_Keycode key) => _KeysHeld.Contains(key);
 
     public void Clear()
     {
-        _keysDown.Clear();
-        _keysUp.Clear();
+        _KeysDown.Clear();
+        _KeysUp.Clear();
     }
 }

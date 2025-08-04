@@ -1,19 +1,19 @@
-using SDL3;
+using SDL;
 
 namespace PinkFox.Core.Components;
 
 public interface IGamepad
 {
-    nint Handle { get; }
-    uint InstanceId { get; }
+    unsafe SDL_Gamepad* Handle { get; }
+    SDL_JoystickID InstanceId { get; }
 
-    bool IsButtonDown(SDL.GamepadButton button);
-    bool IsButtonUp(SDL.GamepadButton button);
-    bool IsButtonHeld(SDL.GamepadButton button);
-    short GetAxis(SDL.GamepadAxis axis);
-    float GetAxisFiltered(SDL.GamepadAxis axis);
+    bool IsButtonDown(SDL_GamepadButton button);
+    bool IsButtonUp(SDL_GamepadButton button);
+    bool IsButtonHeld(SDL_GamepadButton button);
+    short GetAxis(SDL_GamepadAxis axis);
+    float GetAxisFiltered(SDL_GamepadAxis axis);
 
-    void ProcessEvent(SDL.Event e);
+    void ProcessEvent(SDL_Event sdlEvent);
 
     void Clear();
     void Dispose();

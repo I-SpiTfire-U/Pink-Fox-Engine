@@ -1,9 +1,7 @@
 using System.Numerics;
-using PinkFox.Core;
 using PinkFox.Core.Collisions;
 using PinkFox.Core.Components;
 using PinkFox.Core.Scenes;
-using PinkFox.Graphics.Rendering;
 
 namespace PinkFox.Graphics.Cameras;
 

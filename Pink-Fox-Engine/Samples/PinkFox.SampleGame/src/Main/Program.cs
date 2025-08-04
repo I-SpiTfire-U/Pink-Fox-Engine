@@ -3,7 +3,6 @@ using PinkFox.Core;
 using PinkFox.Core.Scenes;
 using PinkFox.Input;
 using PinkFox.SampleGame.Scenes;
-using SDL3;
 
 namespace PinkFox.SampleGame.Main;
 

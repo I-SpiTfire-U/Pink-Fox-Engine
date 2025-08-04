@@ -1,6 +1,6 @@
 using PinkFox.Core.Components;
 using PinkFox.Core.Scenes;
-using SDL3;
+using SDL;
 
 namespace PinkFox.Core;
 
@@ -19,13 +19,13 @@ public sealed class Engine : IDisposable
     private bool _Disposed;
     private bool _FirstFrame = true;
 
-    private nint _Window;
-    private nint _Renderer;
+    private unsafe SDL_Window* _Window;
+    private unsafe SDL_Renderer* _Renderer;
     public int WindowWidth { get; private set; }
     public int WindowHeight { get; private set; }
     private string _WindowTitle = string.Empty;
 
-    public nint Renderer => _Renderer;
+    public unsafe SDL_Renderer* Renderer => _Renderer;
 
     private IInputManager? _InputManager = null;
     private IAudioManager? _AudioManager = null;
@@ -50,41 +50,52 @@ public sealed class Engine : IDisposable
         WindowWidth = width;
         WindowHeight = height;
         _Accumulator = 0;
-        _LastTicks = SDL.GetTicks();
+        _LastTicks = SDL3.SDL_GetTicks();
 
-        SDL.InitFlags initFlags = SDL.InitFlags.Video;
+        SDL_InitFlags initFlags = SDL_InitFlags.SDL_INIT_VIDEO;
+        
 
         if (_AudioManager is not null)
         {
-            initFlags |= SDL.InitFlags.Audio;
+            initFlags |= SDL_InitFlags.SDL_INIT_AUDIO;
         }
 
         if (_InputManager is not null)
         {
-            initFlags |= SDL.InitFlags.Gamepad | SDL.InitFlags.Joystick;
+            initFlags |= SDL_InitFlags.SDL_INIT_GAMEPAD | SDL_InitFlags.SDL_INIT_JOYSTICK;
         }
 
-        if (!SDL.Init(initFlags))
+        if (!SDL3.SDL_Init(initFlags))
         {
-            throw new Exception($"SDL could not initialize: {SDL.GetError()}");
+            throw new Exception($"SDL could not initialize: {SDL3.SDL_GetError()}");
         }
 
-        if (!SDL.CreateWindowAndRenderer(_WindowTitle, WindowWidth, WindowHeight, SDL.WindowFlags.Resizable, out _Window, out _Renderer))
+        unsafe
         {
-            SDL.Quit();
-            throw new Exception($"Error creating window/renderer: {SDL.GetError()}");
+            _Window = SDL3.SDL_CreateWindow(_WindowTitle, WindowWidth, WindowHeight, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+            if (_Window is null)
+            {
+                throw new Exception($"Failed to create window: {SDL3.SDL_GetError()}");
+            }
+
+            _Renderer = SDL3.SDL_CreateRenderer(_Window, (byte*)null);
+            if (_Renderer is null)
+            {
+                throw new Exception($"Failed to create renderer: {SDL3.SDL_GetError()}");
+            }
+
+            if (_Window is null || _Renderer is null)
+            {
+                SDL3.SDL_Quit();
+                throw new Exception("Window or Renderer creation failed.");
+            }
+
+            SDL3.SDL_SetRenderDrawColor(_Renderer, 100, 149, 237, 0);
         }
 
-        if (_Window == 0 || _Renderer == 0)
-        {
-            SDL.Quit();
-            throw new Exception("Window or Renderer creation failed.");
-        }
-
-        SDL.SetRenderDrawColor(_Renderer, 100, 149, 237, 0);
         SetWindowIcon(iconPath);
 
-        TTF.Init();
+        SDL3_ttf.TTF_Init();
         _AudioManager?.Init();
     }
 
@@ -92,7 +103,7 @@ public sealed class Engine : IDisposable
     {
         while (_Running)
         {
-            ulong nowTicks = SDL.GetTicks();
+            ulong nowTicks = SDL3.SDL_GetTicks();
             float deltaTime = (nowTicks - _LastTicks) / 1000f;
 
             _LastTicks = nowTicks;
@@ -100,20 +111,24 @@ public sealed class Engine : IDisposable
 
             _Accumulator = MathF.Min(_Accumulator + deltaTime, 0.50f);
 
-            while (SDL.PollEvent(out SDL.Event sdlEvent))
+            SDL_Event sdlEvent;
+            unsafe
             {
-                _InputManager?.ProcessEvent(sdlEvent);
-
-                SDL.EventType eventType = (SDL.EventType)sdlEvent.Type;
-                switch (eventType)
+                while (SDL3.SDL_PollEvent(&sdlEvent))
                 {
-                    case SDL.EventType.Quit:
-                        _Running = false;
-                        return;
+                    _InputManager?.ProcessEvent(sdlEvent);
 
-                    case SDL.EventType.WindowResized:
-                        HandleWindowResize(sdlEvent.Window.Data1, sdlEvent.Window.Data2);
-                        break;
+                    SDL_EventType eventType = sdlEvent.Type;
+                    switch (eventType)
+                    {
+                        case SDL_EventType.SDL_EVENT_QUIT:
+                            _Running = false;
+                            return;
+
+                        case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
+                            HandleWindowResize(sdlEvent.window.data1, sdlEvent.window.data2);
+                            break;
+                    }
                 }
             }
 
@@ -132,20 +147,23 @@ public sealed class Engine : IDisposable
 
             SceneManager.Update(deltaTime);
 
-            SDL.RenderClear(_Renderer);
             float alpha = _Accumulator / FixedUpdateInterval;
-            SceneManager.Draw(_Renderer, alpha);
-            SDL.RenderPresent(_Renderer);
+            unsafe
+            {
+                SDL3.SDL_RenderClear(_Renderer);
+                SceneManager.Draw(_Renderer, alpha);
+                SDL3.SDL_RenderPresent(_Renderer);
+            }
 
             _InputManager?.Clear();
 
             if (_EnableFPSLimit)
             {
-                float frameEnd = SDL.GetTicks() - nowTicks;
+                float frameEnd = SDL3.SDL_GetTicks() - nowTicks;
                 float delay = TargetFrameTime * 1000 - frameEnd;
                 if (delay > 0f)
                 {
-                    SDL.Delay((uint)delay);
+                    SDL3.SDL_Delay((uint)delay);
                 }
             }
         }
@@ -156,22 +174,34 @@ public sealed class Engine : IDisposable
         WindowWidth = width;
         WindowHeight = height;
 
-        SDL.RenderViewportSet(Renderer);
+        unsafe
+        {
+            SDL_Rect rect = new()
+            {
+                x = 0,
+                y = 0,
+                w = WindowWidth,
+                h = WindowHeight
+            };
+            SDL3.SDL_SetRenderViewport(_Renderer, &rect);
+        }
         SceneManager.GetActiveScene()?.OnWindowResize(width, height);
     }
 
     private void SetWindowIcon(string iconPath)
     {
-        nint surface = Image.Load(iconPath);
-
-        if (surface == nint.Zero)
+        unsafe
         {
-            Console.WriteLine($"Failed to load icon: {SDL.GetError()}");
-            return;
-        }
+            SDL_Surface* surface = SDL3_image.IMG_Load(iconPath);
+            if (surface is null)
+            {
+                Console.WriteLine($"Failed to load icon: {SDL3.SDL_GetError()}");
+                return;
+            }
 
-        SDL.SetWindowIcon(_Window, surface);
-        SDL.Free(surface);
+            SDL3.SDL_SetWindowIcon(_Window, surface);
+            SDL3.SDL_free(surface);
+        }
     }
 
     public void Dispose()
@@ -189,17 +219,21 @@ public sealed class Engine : IDisposable
 
         if (disposing)
         {
+            unsafe
+            {
+                if (_Renderer is not null)
+                {
+                    SDL3.SDL_DestroyRenderer(_Renderer);
+                }
+                if (_Window is not null)
+                {
+                    SDL3.SDL_DestroyWindow(_Window);
+                }
+            }
             SceneManager.UnloadScene();
-            if (_Renderer != 0)
-            {
-                SDL.DestroyRenderer(_Renderer);
-            }
-            if (_Window != 0)
-            {
-                SDL.DestroyWindow(_Window);
-            }
             _AudioManager?.Shutdown();
-            SDL.Quit();
+            SDL3_ttf.TTF_Quit();
+            SDL3.SDL_Quit();
         }
 
         _Disposed = true;

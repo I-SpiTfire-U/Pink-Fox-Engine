@@ -1,3 +1,5 @@
+using SDL;
+
 namespace PinkFox.Core.Scenes;
 
 public static class SceneManager
@@ -54,7 +56,7 @@ public static class SceneManager
         _ActiveScene?.FixedUpdate(fixedUpdateInterval);
     }
 
-    public static void Draw(nint renderer, float alpha)
+    public static unsafe void Draw(SDL_Renderer* renderer, float alpha)
     {
         _ActiveScene?.Draw(renderer, alpha);
     }

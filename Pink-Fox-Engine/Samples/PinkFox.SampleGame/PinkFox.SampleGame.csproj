@@ -4,13 +4,8 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
-    <ItemGroup>
-        <None Update="NativeLibs\*.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <Link>%(Filename)%(Extension)</Link>
-        </None>
-    </ItemGroup>
     <ItemGroup>
         <Content Include="Assets\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -25,15 +20,13 @@
         <ProjectReference Include="..\..\Engine\PinkFox.UI\PinkFox.UI.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="SDL3-CS"
-                          Version="3.2.18" />
-        <PackageReference Include="SDL3-CS.Native"
-                          Version="3.2.18" />
-        <PackageReference Include="SDL3-CS.Native.Image"
-                          Version="3.2.4" />
-        <PackageReference Include="SDL3-CS.Native.Mixer"
-                          Version="2.8.1.1" />
-        <PackageReference Include="SDL3-CS.Native.TTF"
-                          Version="3.2.2" />
+        <PackageReference Include="ppy.SDL3-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_image-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_mixer-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_ttf-CS"
+                          Version="2025.703.0" />
     </ItemGroup>
 </Project>

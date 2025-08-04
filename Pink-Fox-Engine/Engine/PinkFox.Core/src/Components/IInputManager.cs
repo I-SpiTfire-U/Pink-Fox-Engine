@@ -1,4 +1,4 @@
-using SDL3;
+using SDL;
 
 namespace PinkFox.Core.Components;
 
@@ -8,7 +8,7 @@ public interface IInputManager
     IMouse Mouse { get; }
     IGamepadCollection Gamepads { get; }
 
-    void ProcessEvent(SDL.Event sdlEvent);
+    void ProcessEvent(SDL_Event sdlEvent);
     
     void Clear();
 }

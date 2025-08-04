@@ -1,10 +1,10 @@
-using SDL3;
+using SDL;
 
 namespace PinkFox.Audio;
 
 public class MusicTrack : IDisposable
 {
-    public nint Track { get; init; }
+    public unsafe Mix_Music* Track { get; init; }
     private bool _Disposed;
 
     public MusicTrack(string filePath)
@@ -14,14 +14,17 @@ public class MusicTrack : IDisposable
             throw new FileNotFoundException($"File not found", filePath);
         }
 
-        Track = Mixer.LoadMUS(filePath);
-        if (Track == nint.Zero)
+        unsafe
         {
-            throw new Exception("Failed to load sound effect");
+            Mix_Music* track = SDL3_mixer.Mix_LoadMUS(filePath);
+            if (track is null)
+            {
+                throw new Exception("Failed to load sound effect");
+            }
+            Track = track;
         }
     }
 
-    #region Disposal
     public void Dispose()
     {
         Dispose(true);
@@ -37,14 +40,11 @@ public class MusicTrack : IDisposable
 
         if (disposing)
         {
-            Mixer.FreeMusic(Track);
+            unsafe
+            {
+                SDL3_mixer.Mix_FreeMusic(Track);
+            }
         }
         _Disposed = true;
     }
-
-    ~MusicTrack()
-    {
-        Dispose(false);
-    }
-    #endregion
 }

@@ -2,7 +2,7 @@ using System.Numerics;
 using PinkFox.Core.Collisions;
 using PinkFox.Core.Components;
 using PinkFox.Graphics.Rendering;
-using SDL3;
+using SDL;
 
 namespace PinkFox.Core.Scenes;
 
@@ -14,13 +14,13 @@ public interface ISprite2D
     Vector2 Origin { get; set; }
     Vector2 Scale { get; set; }
     double Rotation { get; set; }
-    SDL.FlipMode FlipMode { get; set; }
+    SDL_FlipMode FlipMode { get; set; }
     bool IsVisible { get; set; }
 
     Vector2 TextureSize { get; }
     Vector2 Center { get; }
     RectCollider Collider { get; }
 
-    void Draw(nint renderer, ICamera2D? camera2D = null);
+    unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null);
     void Dispose();
 }

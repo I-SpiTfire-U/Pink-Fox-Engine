@@ -1,6 +1,6 @@
-using SDL3;
 using PinkFox.Input.InputDevices;
 using PinkFox.Core.Components;
+using SDL;
 
 namespace PinkFox.Input;
 
@@ -10,51 +10,50 @@ public class InputManager : IInputManager
     public IMouse Mouse { get; } = new Mouse();
     public IGamepadCollection Gamepads { get; } = new GamepadCollection();
 
-    public void ProcessEvent(SDL.Event sdlEvent)
+    public void ProcessEvent(SDL_Event sdlEvent)
     {
-        SDL.EventType eventType = (SDL.EventType)sdlEvent.Type;
+        SDL_EventType eventType = sdlEvent.Type;
 
         switch (eventType)
         {
-            case SDL.EventType.KeyDown or SDL.EventType.KeyUp:
+            case SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP:
                 KeyboardEvent(eventType, sdlEvent);
                 break;
 
-            case SDL.EventType.MouseMotion or SDL.EventType.MouseButtonDown or SDL.EventType.MouseButtonUp:
+            case SDL_EventType.SDL_EVENT_MOUSE_MOTION or SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN or SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
                 MouseEvent(eventType, sdlEvent);
                 break;
 
-            case SDL.EventType.GamepadAdded or SDL.EventType.GamepadRemoved or SDL.EventType.GamepadButtonDown or SDL.EventType.GamepadButtonUp or SDL.EventType.GamepadAxisMotion:
+            case SDL_EventType.SDL_EVENT_GAMEPAD_ADDED or SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED or SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN or SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP or SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
                 GamepadEvent(eventType, sdlEvent);
                 break;
         }
     }
 
-    private void KeyboardEvent(SDL.EventType eventType, SDL.Event sdlEvent)
+    private void KeyboardEvent(SDL_EventType eventType, SDL_Event sdlEvent)
     {
         Keyboard.ProcessEvent(sdlEvent);
     }
 
-    private void MouseEvent(SDL.EventType eventType, SDL.Event sdlEvent)
+    private void MouseEvent(SDL_EventType eventType, SDL_Event sdlEvent)
     {
         Mouse.ProcessEvent(sdlEvent);
     }
 
-    private void GamepadEvent(SDL.EventType eventType, SDL.Event sdlEvent)
+    private unsafe void GamepadEvent(SDL_EventType eventType, SDL_Event sdlEvent)
     {
-        uint instanceId = sdlEvent.GDevice.Which;
+        SDL_JoystickID instanceId = sdlEvent.gdevice.which;
 
         switch (eventType)
         {
-            case SDL.EventType.GamepadAdded:
-                uint deviceIndex = sdlEvent.GDevice.Which;
-                if (!SDL.IsGamepad(deviceIndex))
+            case SDL_EventType.SDL_EVENT_GAMEPAD_ADDED:
+                if (!SDL3.SDL_IsGamepad(instanceId))
                 {
                     return;
                 }
 
-                nint handle = SDL.OpenGamepad(deviceIndex);
-                if (handle == nint.Zero)
+                SDL_Gamepad* handle = SDL3.SDL_OpenGamepad(instanceId);
+                if (handle is null)
                 {
                     return;
                 }
@@ -63,11 +62,11 @@ public class InputManager : IInputManager
                 Gamepads.AddGamepad(instanceId, gamepad);
                 break;
 
-            case SDL.EventType.GamepadRemoved:
+            case SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
                 Gamepads.RemoveGamepad(instanceId);
                 break;
 
-            case SDL.EventType.GamepadButtonDown or SDL.EventType.GamepadButtonUp or SDL.EventType.GamepadAxisMotion:
+            case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN or SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP or SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
                 Gamepads.ProcessEvent(instanceId, sdlEvent);
                 break;
         }

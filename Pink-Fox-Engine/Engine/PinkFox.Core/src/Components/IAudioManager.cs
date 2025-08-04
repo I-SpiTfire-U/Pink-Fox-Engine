@@ -13,10 +13,10 @@ public interface IAudioManager
 
     void LoadTrack(string id, string path);
     void UnloadTrack(string id);
-    void PlayMusic(string id, int numberOfLoops = 0);
+    unsafe void PlayMusic(string id, int numberOfLoops = 0);
     void PauseMusic();
     void ResumeMusic();
-    void SetMusicVolume(float volumeNormalized);
-    float GetMusicVolume();
+    void SetMusicVolume(float volume);
+    unsafe float GetMusicVolume();
     void Shutdown();
 }

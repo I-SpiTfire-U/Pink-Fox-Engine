@@ -1,9 +1,9 @@
 using PinkFox.Core.Components;
 using PinkFox.Core.Collisions;
 using PinkFox.Graphics.Rendering;
-using SDL3;
 using System.Numerics;
 using PinkFox.Core.Scenes;
+using SDL;
 
 namespace PinkFox.SampleGame;
 
@@ -15,7 +15,7 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
 
     private bool _IsGrounded = false;
 
-    public PlayerObject(string name, Velocity horizontalVelocity, Velocity verticalVelocity, float jumpForce, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0f, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
+    public PlayerObject(string name, Velocity horizontalVelocity, Velocity verticalVelocity, float jumpForce, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, bool isVisible = true)
     : base(name, texture, animations, position, origin, scale, rotation, flipMode, isVisible)
     {
         _HorizontalVelocity = horizontalVelocity;
@@ -31,17 +31,17 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
     {
         _PreviousPosition = Position;
         
-        if (inputManager.Keyboard.IsKeyDown(SDL.Keycode.Space) || (inputManager.Gamepads.AtIndex(0)?.IsButtonDown(SDL.GamepadButton.South) ?? false))
+        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_SPACE) || (inputManager.Gamepads.AtIndex(0)?.IsButtonDown(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH) ?? false))
         {
             _JumpRequested = true;
         }
 
         _MoveDirection = 0f;
-        if (inputManager.Keyboard.IsKeyHeld(SDL.Keycode.A) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL.GamepadAxis.LeftX) < 0)
+        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_A) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) < 0)
         {
             _MoveDirection = -1f;
         }
-        if (inputManager.Keyboard.IsKeyHeld(SDL.Keycode.D) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL.GamepadAxis.LeftX) > 0)
+        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_D) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) > 0)
         {
             _MoveDirection = 1f;
         }
@@ -129,7 +129,7 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
         SetCurrentFrame(1);
     }
 
-    public void Draw(nint renderer, ICamera2D? camera2D = null, float alpha = 1f)
+    public unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null, float alpha = 1f)
     {
         Vector2 interpolatedPosition = Vector2.Lerp(_PreviousPosition, Position, alpha);
         Vector2 originalPosition = Position;

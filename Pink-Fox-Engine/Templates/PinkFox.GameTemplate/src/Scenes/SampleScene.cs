@@ -1,5 +1,6 @@
 using PinkFox.Core;
 using PinkFox.Core.Scenes;
+using SDL;
 
 namespace PinkFox.GameTemplate.Scenes;
 
@@ -33,7 +34,7 @@ public class SampleScene : IScene, IDisposable
 
     }
 
-    public void Draw(nint renderer, float alpha)
+    public unsafe void Draw(SDL_Renderer* renderer, float alpha)
     {
         // TODO: Draw game elements to the screen below:
 

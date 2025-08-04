@@ -1,8 +1,8 @@
-using SDL3;
 using System.Numerics;
 using PinkFox.Core.Components;
 using PinkFox.Core.Scenes;
 using PinkFox.Core.Collisions;
+using SDL;
 
 namespace PinkFox.Graphics.Rendering;
 
@@ -18,16 +18,16 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
     public Vector2 Origin { get; set; }
     public Vector2 Scale { get; set; }
     public double Rotation { get; set; }
-    public SDL.FlipMode FlipMode { get; set; }
+    public SDL_FlipMode FlipMode { get; set; }
     public bool IsVisible { get; set; }
 
     private bool _Disposed = false;
 
-    public Vector2 TextureSize => new(CurrentAnimation.GetCurrentFrameRect().W, CurrentAnimation.GetCurrentFrameRect().H);
+    public Vector2 TextureSize => new(CurrentAnimation.GetCurrentFrameRect().w, CurrentAnimation.GetCurrentFrameRect().h);
     public Vector2 Center => Position + Scale / 2f;
     public RectCollider Collider => new(Position, Scale, Center);
 
-    public AnimatedSprite2D(string name, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0.0f, SDL.FlipMode flipMode = SDL.FlipMode.None, bool isVisible = true)
+    public AnimatedSprite2D(string name, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0.0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, bool isVisible = true)
     {
         Name = name;
         Texture = texture;
@@ -66,7 +66,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
         _Animations[CurrentAnimationKey].UpdateCurrentFrame(amount);
     }
 
-    public void Draw(nint renderer, ICamera2D? camera2D = null)
+    public unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null)
     {
         if (!IsVisible)
         {
@@ -76,25 +76,25 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
         Vector2 screenPos = camera2D?.WorldToScreen(Position) ?? Position;
         float zoom = camera2D?.Zoom ?? 1f;
 
-        SDL.FRect destinationRect = new()
+        SDL_FRect destinationRect = new()
         {
-            X = screenPos.X,
-            Y = screenPos.Y,
-            W = Scale.X * zoom,
-            H = Scale.Y * zoom
+            x = screenPos.X,
+            y = screenPos.Y,
+            w = Scale.X * zoom,
+            h = Scale.Y * zoom
         };
 
-        SDL.FRect sourceRect = CurrentAnimation.GetCurrentFrameRect();
+        SDL_FRect sourceRect = CurrentAnimation.GetCurrentFrameRect();
 
-        SDL.FPoint center = new()
+        SDL_FPoint center = new()
         {
-            X = Scale.X * zoom / 2f,
-            Y = Scale.Y * zoom / 2f
+            x = Scale.X * zoom / 2f,
+            y = Scale.Y * zoom / 2f
         };
 
         unsafe
         {
-            SDL.RenderTextureRotated(renderer, Texture.TextureHandle, (nint)(&sourceRect), (nint)(&destinationRect), Rotation, (nint)(&center), FlipMode);
+            SDL3.SDL_RenderTextureRotated(renderer, Texture.TextureHandle, &sourceRect, &destinationRect, Rotation, &center, FlipMode);
         }
     }
 
@@ -114,10 +114,5 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
         if (disposing) { }
 
         _Disposed = true;
-    }
-
-    ~AnimatedSprite2D()
-    {
-        Dispose(false);
     }
 }

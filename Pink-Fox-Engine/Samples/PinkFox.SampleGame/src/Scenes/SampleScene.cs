@@ -1,4 +1,4 @@
-using SDL3;
+using SDL;
 using PinkFox.Core.Scenes;
 using PinkFox.Graphics.Rendering;
 using PinkFox.Graphics.Cameras;
@@ -28,7 +28,7 @@ public class SampleScene : IScene, IDisposable
 
     private bool _Disposed;
 
-    public SampleScene(Engine engine)
+    public unsafe SampleScene(Engine engine)
     {
         Engine = engine;
 
@@ -52,7 +52,7 @@ public class SampleScene : IScene, IDisposable
             origin: null,
             scale: new Vector2(96f),
             rotation: 0f,
-            flipMode: SDL.FlipMode.None,
+            flipMode: SDL_FlipMode.SDL_FLIP_NONE,
             isVisible: true
         );
 
@@ -65,7 +65,7 @@ public class SampleScene : IScene, IDisposable
             sourceRect: null,
             scale: new Vector2(256f, 32f),
             rotation: 0f,
-            flipMode: SDL.FlipMode.None,
+            flipMode: SDL_FlipMode.SDL_FLIP_NONE,
             isVisible: true
         );
         Sprite2D RoofSprite = new(
@@ -74,9 +74,9 @@ public class SampleScene : IScene, IDisposable
             position: new Vector2(GroundSprite.Position.X + GroundSprite.Scale.X, -70f),
             origin: null,
             sourceRect: null,
-            scale: new Vector2(256f, 32f),
+            scale: new Vector2(512f, 32f),
             rotation: 0f,
-            flipMode: SDL.FlipMode.None,
+            flipMode: SDL_FlipMode.SDL_FLIP_NONE,
             isVisible: true
         );
         Sprite2D WallSprite = new(
@@ -87,7 +87,7 @@ public class SampleScene : IScene, IDisposable
             sourceRect: null,
             scale: new Vector2(32f, 256f),
             rotation: 0f,
-            flipMode: SDL.FlipMode.None,
+            flipMode: SDL_FlipMode.SDL_FLIP_NONE,
             isVisible: true
         );
 
@@ -119,23 +119,23 @@ public class SampleScene : IScene, IDisposable
 
         PlayerObject.Update(deltaTime, Engine.InputManager);
 
-        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Up) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.RightShoulder) ?? false))
+        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_UP) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ?? false))
         {
             Camera.UpdateZoom(1f * deltaTime);
         }
-        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Down) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.LeftShoulder) ?? false))
+        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_DOWN) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) ?? false))
         {
             Camera.UpdateZoom(-1f * deltaTime);
         }
 
         Camera.SetPosition(PlayerObject.Origin - Camera.ViewOffset);
 
-        if (Engine.InputManager.Mouse.Collider.IsCollidingWith(PlayerObject.Collider) && Engine.InputManager.Mouse.IsButtonDown(SDL.MouseButtonFlags.Left))
+        if (Engine.InputManager.Mouse.Collider.IsCollidingWith(PlayerObject.Collider) && Engine.InputManager.Mouse.IsButtonDown(SDL_MouseButtonFlags.SDL_BUTTON_LMASK))
         {
             OnRequestExit?.Invoke();
         }
 
-        if (Engine.InputManager.Keyboard.IsKeyDown(SDL.Keycode.Escape) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.Start) ?? false))
+        if (Engine.InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_ESCAPE) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START) ?? false))
         {
             OnRequestExit?.Invoke();
         }
@@ -148,7 +148,7 @@ public class SampleScene : IScene, IDisposable
         PlayerObject.FixedUpdate(fixedUpdateInterval, SpritePool, Engine.AudioManager);
     }
 
-    public void Draw(nint renderer, float alpha)
+    public unsafe void Draw(SDL_Renderer* renderer, float alpha)
     {
         // TODO: Draw game elements to the screen below:
 
@@ -199,10 +199,17 @@ public class SampleScene : IScene, IDisposable
         {
             return;
         }
-        
+
         if (disposing)
         {
+            ArialFont.Dispose();
+            PlayerTexture.Dispose();
+            GroundTexture.Dispose();
             PlayerObject.Dispose();
+            foreach (ISprite2D sprite2D in SpritePool)
+            {
+                sprite2D.Dispose();
+            }
         }
 
         _Disposed = true;

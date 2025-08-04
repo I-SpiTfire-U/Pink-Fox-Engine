@@ -1,47 +1,47 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SDL3;
+using SDL;
 
 namespace PinkFox.Graphics.Rendering;
 
 public class Texture2D : IDisposable
 {
-    public nint TextureHandle { get; private set; }
+    public unsafe SDL_Texture* TextureHandle { get; private set; }
     public float Width { get; init; }
     public float Height { get; init; }
 
-    public bool IsValid => TextureHandle != nint.Zero && !_Disposed;
+    public unsafe bool IsValid => TextureHandle is not null && !_Disposed;
     private bool _Disposed;
 
-    public Texture2D(string filePath, nint renderer)
+    public unsafe Texture2D(string filePath, SDL_Renderer* renderer)
     {
-        nint surface = LoadImage(filePath);
+        SDL_Surface* surface = LoadImage(filePath);
         (Width, Height) = GetWidthAndHeight(surface);
-        TextureHandle = CreateTexture(surface, renderer);
-        SDL.DestroySurface(surface);
-        SDL.SetTextureBlendMode(TextureHandle, SDL.BlendMode.Blend);
+        TextureHandle = CreateTexture(renderer, surface);
+        SDL3.SDL_DestroySurface(surface);
+        SDL3.SDL_SetTextureBlendMode(TextureHandle, SDL_BlendMode.SDL_BLENDMODE_BLEND);
     }
 
-    public Texture2D(nint surface, nint renderer)
+    public unsafe Texture2D(SDL_Surface* surface, SDL_Renderer* renderer)
     {
         ThrowIfSurfaceInvalid(surface);
         (Width, Height) = GetWidthAndHeight(surface);
-        TextureHandle = CreateTexture(surface, renderer);
-        SDL.DestroySurface(surface);
-        SDL.SetTextureBlendMode(TextureHandle, SDL.BlendMode.Blend);
+        TextureHandle = CreateTexture(renderer, surface);
+        SDL3.SDL_DestroySurface(surface);
+        SDL3.SDL_SetTextureBlendMode(TextureHandle, SDL_BlendMode.SDL_BLENDMODE_BLEND);
     }
 
-    public void Draw(nint renderer, Vector2 position)
+    public unsafe void Draw(SDL_Renderer* renderer, Vector2 position)
     {
-        SDL.FRect destinationRect = new()
+        SDL_FRect destinationRect = new()
         {
-            X = position.X,
-            Y = position.Y,
-            W = Width,
-            H = Height
+            x = position.X,
+            y = position.Y,
+            w = Width,
+            h = Height
         };
 
-        SDL.RenderTexture(renderer, TextureHandle, nint.Zero, in destinationRect);
+        SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
     }
 
     public void Dispose()
@@ -59,10 +59,13 @@ public class Texture2D : IDisposable
 
         if (disposing)
         {
-            if (TextureHandle != nint.Zero)
+            unsafe
             {
-                SDL.DestroyTexture(TextureHandle);
-                TextureHandle = nint.Zero;
+                if (TextureHandle is not null)
+                {
+                    SDL3.SDL_DestroyTexture(TextureHandle);
+                    TextureHandle = null;
+                }
             }
         }
 
@@ -74,55 +77,54 @@ public class Texture2D : IDisposable
         Dispose(false);
     }
 
-    private static nint CreateTexture(nint surface, nint renderer)
+    private static unsafe SDL_Texture* CreateTexture(SDL_Renderer* renderer, SDL_Surface* surface)
     {
-        nint texture = SDL.CreateTextureFromSurface(renderer, surface);
+        SDL_Texture* texture = SDL3.SDL_CreateTextureFromSurface(renderer, surface);
         ThrowIfTextureInvalid(texture);
         return texture;
     }
 
-    private static nint LoadImage(string path)
+    private static unsafe SDL_Surface* LoadImage(string path)
     {
-        nint surface = Image.Load(path);
+        SDL_Surface* surface = SDL3_image.IMG_Load(path);
         ThrowIfSurfaceInvalid(surface);
         return surface;
     }
 
-    private static void ThrowIfSurfaceInvalid(nint surface)
+    private static unsafe void ThrowIfSurfaceInvalid(SDL_Surface* surface)
     {
-        if (surface == nint.Zero)
+        if (surface is null)
         {
-            throw new Exception($"Failed to load surface: {SDL.GetError()}");
+            throw new Exception($"Failed to load surface: {SDL3.SDL_GetError()}");
         }
     }
 
-    private static void ThrowIfTextureInvalid(nint texture)
+    private static unsafe void ThrowIfTextureInvalid(SDL_Texture* texture)
     {
-        if (texture == nint.Zero)
+        if (texture is null)
         {
-            throw new Exception($"Failed to create texture: {SDL.GetError()}");
+            throw new Exception($"Failed to create texture: {SDL3.SDL_GetError()}");
         }
     }
 
-    private static (int width, int height) GetWidthAndHeight(nint surface)
+    private static unsafe (int width, int height) GetWidthAndHeight(SDL_Surface* surface)
     {
         ThrowIfSurfaceInvalid(surface);
-        SDL.Surface surfaceStruct = Marshal.PtrToStructure<SDL.Surface>(surface);
-        return (surfaceStruct.Width, surfaceStruct.Height);
+        return (surface->w, surface->h);
     }
 
-    public static Texture2D FromPixels(nint renderer, nint pixels, int width, int height, SDL.PixelFormat format)
+    public static unsafe Texture2D FromPixels(SDL_Renderer* renderer, nint pixels, int width, int height, SDL_PixelFormat format)
     {
-        int pitch = (int)(width * SDL.BytesPerPixel(format));
-        nint surface = SDL.CreateSurfaceFrom(width, height, format, pixels, pitch);
-        if (surface == nint.Zero)
+        int pitch = width * SDL3.SDL_BYTESPERPIXEL(format);
+        SDL_Surface* surface = SDL3.SDL_CreateSurfaceFrom(width, height, format, pixels, pitch);
+        if (surface is null)
         {
-            throw new Exception($"Failed to create surface from pixels: {SDL.GetError()}");
+            throw new Exception($"Failed to create surface from pixels: {SDL3.SDL_GetError()}");
         }
         return new Texture2D(surface, renderer);
     }
 
-    public static Texture2D CreateSquareTexture(nint renderer, int width, int height, SDL.Color color)
+    public static unsafe Texture2D CreateSquareTexture(SDL_Renderer* renderer, int width, int height, SDL_Color color)
     {
         int bpp = 4;
         int pitch = width * bpp;
@@ -140,15 +142,15 @@ public class Texture2D : IDisposable
                     {
                         int offset = (y * pitch) + (x * bpp);
 
-                        ptr[offset + 0] = color.R;
-                        ptr[offset + 1] = color.G;
-                        ptr[offset + 2] = color.B;
-                        ptr[offset + 3] = color.A;
+                        ptr[offset + 0] = color.r;
+                        ptr[offset + 1] = color.g;
+                        ptr[offset + 2] = color.b;
+                        ptr[offset + 3] = color.a;
                     }
                 }
             }
 
-            return FromPixels(renderer, pixels, width, height, SDL.PixelFormat.RGBA8888);
+            return FromPixels(renderer, pixels, width, height, SDL_PixelFormat.SDL_PIXELFORMAT_RGBA8888);
         }
         finally
         {
@@ -156,7 +158,7 @@ public class Texture2D : IDisposable
         }
     }
 
-    public static Texture2D CreateCircleTexture(nint renderer, int width, int height, SDL.Color color)
+    public static unsafe Texture2D CreateCircleTexture(SDL_Renderer* renderer, int width, int height, SDL_Color color)
     {
         int bpp = 4;
         int pitch = width * bpp;
@@ -183,15 +185,15 @@ public class Texture2D : IDisposable
 
                         int offset = (y * pitch) + (x * bpp);
 
-                        ptr[offset + 0] = insideCircle ? color.R : (byte)0;
-                        ptr[offset + 1] = insideCircle ? color.G : (byte)0;
-                        ptr[offset + 2] = insideCircle ? color.B : (byte)0;
-                        ptr[offset + 3] = insideCircle ? color.A : (byte)0;
+                        ptr[offset + 0] = insideCircle ? color.r : (byte)0;
+                        ptr[offset + 1] = insideCircle ? color.g : (byte)0;
+                        ptr[offset + 2] = insideCircle ? color.b : (byte)0;
+                        ptr[offset + 3] = insideCircle ? color.a : (byte)0;
                     }
                 }
             }
 
-            return FromPixels(renderer, pixels, width, height, SDL.PixelFormat.RGBA8888);
+            return FromPixels(renderer, pixels, width, height, SDL_PixelFormat.SDL_PIXELFORMAT_RGBA8888);
         }
         finally
         {

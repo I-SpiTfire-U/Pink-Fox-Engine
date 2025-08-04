@@ -1,70 +1,70 @@
 using PinkFox.Core.Components;
-using SDL3;
+using SDL;
 
 namespace PinkFox.Input.InputDevices;
 
 public class Gamepad : IGamepad, IDisposable
 {
-    public nint Handle { get; }
-    public uint InstanceId { get; }
+    public unsafe SDL_Gamepad* Handle { get; }
+    public SDL_JoystickID InstanceId { get; }
 
-    private readonly HashSet<SDL.GamepadButton> _ButtonsDown = [];
-    private readonly HashSet<SDL.GamepadButton> _ButtonsUp = [];
-    private readonly HashSet<SDL.GamepadButton> _ButtonsHeld = [];
+    private readonly HashSet<SDL_GamepadButton> _ButtonsDown = [];
+    private readonly HashSet<SDL_GamepadButton> _ButtonsUp = [];
+    private readonly HashSet<SDL_GamepadButton> _ButtonsHeld = [];
 
-    private readonly Dictionary<SDL.GamepadAxis, short> _AxisValues = [];
-    private readonly Dictionary<SDL.GamepadAxis, short> _AxisDeadZones = new()
+    private readonly Dictionary<SDL_GamepadAxis, short> _AxisValues = [];
+    private readonly Dictionary<SDL_GamepadAxis, short> _AxisDeadZones = new()
     {
-        { SDL.GamepadAxis.LeftX, 8000 },
-        { SDL.GamepadAxis.LeftY, 8000 },
-        { SDL.GamepadAxis.RightX, 8000 },
-        { SDL.GamepadAxis.RightY, 8000 },
-        { SDL.GamepadAxis.LeftTrigger, 3000 },
-        { SDL.GamepadAxis.RightTrigger, 3000 },
+        { SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX, 8000 },
+        { SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTY, 8000 },
+        { SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHTX, 8000 },
+        { SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHTY, 8000 },
+        { SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFT_TRIGGER, 3000 },
+        { SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, 3000 },
     };
     private bool _Disposed;
 
     private const short DeadZone = 8000;
     
-    public Gamepad(nint handle)
+    public unsafe Gamepad(SDL_Gamepad* handle)
     {
         Handle = handle;
-        InstanceId = SDL.GetGamepadID(handle);
-        string? name = SDL.GetGamepadName(handle);
-        Console.WriteLine($"Opened gamepad: {name} (Instance ID: {InstanceId}) (Handle: {handle})");
+        InstanceId = SDL3.SDL_GetGamepadID(handle);
+        string? name = SDL3.SDL_GetGamepadName(handle);
+        Console.WriteLine($"Opened gamepad: {name} (Instance ID: {InstanceId})");
     }
 
-    public void ProcessEvent(SDL.Event e)
+    public void ProcessEvent(SDL_Event sdlEvent)
     {
-        SDL.EventType eventType = (SDL.EventType)e.Type;
+        SDL_EventType eventType = sdlEvent.Type;
 
         switch (eventType)
         {
-            case SDL.EventType.GamepadButtonDown:
-                _ButtonsDown.Add((SDL.GamepadButton)e.GButton.Button);
-                _ButtonsHeld.Add((SDL.GamepadButton)e.GButton.Button);
-                Console.WriteLine($"Button down: {e.GButton.Button}");
+            case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+                _ButtonsDown.Add(sdlEvent.gbutton.Button);
+                _ButtonsHeld.Add(sdlEvent.gbutton.Button);
+                Console.WriteLine($"Button down: {sdlEvent.gbutton.Button}");
                 break;
 
-            case SDL.EventType.GamepadButtonUp:
-                _ButtonsUp.Add((SDL.GamepadButton)e.GButton.Button);
-                _ButtonsHeld.Remove((SDL.GamepadButton)e.GButton.Button);
-                Console.WriteLine($"Button up: {e.GButton.Button}");
+            case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
+                _ButtonsUp.Add(sdlEvent.gbutton.Button);
+                _ButtonsHeld.Remove(sdlEvent.gbutton.Button);
+                Console.WriteLine($"Button up: {sdlEvent.gbutton.Button}");
                 break;
 
-            case SDL.EventType.GamepadAxisMotion:
-                _AxisValues[(SDL.GamepadAxis)e.GAxis.Axis] = e.GAxis.Value;
-                Console.WriteLine($"Axis {e.GAxis.Axis}: {e.GAxis.Value}");
+            case SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                _AxisValues[sdlEvent.gaxis.Axis] = sdlEvent.gaxis.value;
+                Console.WriteLine($"Axis {sdlEvent.gaxis.Axis}: {sdlEvent.gaxis.value}");
                 break;
         }
     }
 
-    public bool IsButtonDown(SDL.GamepadButton button) => _ButtonsDown.Contains(button);
-    public bool IsButtonUp(SDL.GamepadButton button) => _ButtonsUp.Contains(button);
-    public bool IsButtonHeld(SDL.GamepadButton button) => _ButtonsHeld.Contains(button);
-    public short GetAxis(SDL.GamepadAxis axis) => _AxisValues.TryGetValue(axis, out short value) ? value : (short)0;
+    public bool IsButtonDown(SDL_GamepadButton button) => _ButtonsDown.Contains(button);
+    public bool IsButtonUp(SDL_GamepadButton button) => _ButtonsUp.Contains(button);
+    public bool IsButtonHeld(SDL_GamepadButton button) => _ButtonsHeld.Contains(button);
+    public short GetAxis(SDL_GamepadAxis axis) => _AxisValues.TryGetValue(axis, out short value) ? value : (short)0;
 
-    public float GetAxisFiltered(SDL.GamepadAxis axis)
+    public float GetAxisFiltered(SDL_GamepadAxis axis)
     {
         if (!_AxisValues.TryGetValue(axis, out short rawValue))
         {
@@ -95,10 +95,13 @@ public class Gamepad : IGamepad, IDisposable
 
         if (disposing)
         {
-            if (Handle != nint.Zero)
+            unsafe
             {
-                Clear();
-                SDL.CloseGamepad(Handle);
+                if (Handle is not null)
+                {
+                    Clear();
+                    SDL3.SDL_CloseGamepad(Handle);
+                }
             }
         }
         _Disposed = true;

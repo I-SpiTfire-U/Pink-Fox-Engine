@@ -1,10 +1,10 @@
-using SDL3;
+using SDL;
 
 namespace PinkFox.Audio;
 
 public class SoundEffect : IDisposable
 {
-    public nint Chunk { get; init; }
+    public unsafe Mix_Chunk* Chunk { get; init; }
     private bool _Disposed;
 
     public SoundEffect(string filePath)
@@ -14,19 +14,26 @@ public class SoundEffect : IDisposable
             throw new FileNotFoundException($"File not found", filePath);
         }
 
-        Chunk = Mixer.LoadWAV(filePath);
-        if (Chunk == nint.Zero)
+        unsafe
         {
-            throw new Exception("Failed to load sound effect");
+            Mix_Chunk* chunk = SDL3_mixer.Mix_LoadWAV(filePath);
+            if (chunk is null)
+            {
+                throw new Exception("Failed to load sound effect");
+            }
+            Chunk = chunk;
         }
     }
 
     public void Play(int numberOfLoops = 0)
     {
-        int channel = Mixer.PlayChannel(-1, Chunk, numberOfLoops);
-        if (channel == -1)
+        unsafe
         {
-            Console.WriteLine($"Failed to play sound: {SDL.GetError()}");
+            int channel = SDL3_mixer.Mix_PlayChannel(-1, Chunk, numberOfLoops);
+            if (channel == -1)
+            {
+                Console.WriteLine($"Failed to play sound: {SDL3.SDL_GetError()}");
+            }
         }
     }
 
@@ -34,10 +41,12 @@ public class SoundEffect : IDisposable
     {
         volumeNormalized = Math.Clamp(volumeNormalized, 0f, 1f);
         int sdlVolume = (int)(volumeNormalized * 128);
-        _ = Mixer.VolumeChunk(Chunk, sdlVolume);
+        unsafe
+        {
+            _ = SDL3_mixer.Mix_VolumeChunk(Chunk, sdlVolume);
+        }
     }
 
-    #region Disposal
     public void Dispose()
     {
         Dispose(true);
@@ -53,14 +62,11 @@ public class SoundEffect : IDisposable
 
         if (disposing)
         {
-            Mixer.FreeChunk(Chunk);
+            unsafe
+            {
+                SDL3_mixer.Mix_FreeChunk(Chunk);
+            }
         }
         _Disposed = true;
     }
-
-    ~SoundEffect()
-    {
-        Dispose(false);
-    }
-    #endregion
 }
