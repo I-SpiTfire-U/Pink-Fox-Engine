@@ -3,6 +3,7 @@ using PinkFox.Core;
 using PinkFox.Core.Scenes;
 using PinkFox.Input;
 using PinkFox.SampleGame.Scenes;
+using SDL3;
 
 namespace PinkFox.SampleGame.Main;
 
@@ -26,7 +27,7 @@ public class Program
             SceneManager.LoadScene(new SampleScene(engine));
         };
 
-        engine.Initialize("My Game", DefaultWindowWidth, DefaultWindowHeight);
+        engine.Initialize("Sample Game", @"Assets\Icon\Icon.png", DefaultWindowWidth, DefaultWindowHeight);
         engine.Run();
     }
 }

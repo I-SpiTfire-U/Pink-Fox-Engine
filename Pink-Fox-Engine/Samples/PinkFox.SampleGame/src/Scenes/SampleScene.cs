@@ -96,7 +96,7 @@ public class SampleScene : IScene, IDisposable
 
     public void LoadContent()
     {
-        // TODO: Load game content below:
+        // TODO: Load game assets such as textures, audio, and other content here:
 
         // Audio
         Engine.AudioManager.LoadSound("Jump", @"Assets\Audio\Jump.wav");
@@ -108,7 +108,7 @@ public class SampleScene : IScene, IDisposable
 
     public void Update(float deltaTime)
     {
-        // TODO: Update game objects and code below:
+        // TODO: Update game logic that runs every frame, such as input handling, animations, or timers below:
 
         UpdateFPS(deltaTime);
 
@@ -143,14 +143,14 @@ public class SampleScene : IScene, IDisposable
 
     public void FixedUpdate(float fixedUpdateInterval)
     {
-        // TODO: Update physics code and fixed values here:
+        // TODO: Update physics or other fixed-timestep systems below:
 
         PlayerObject.FixedUpdate(fixedUpdateInterval, SpritePool, Engine.AudioManager);
     }
 
     public void Draw(nint renderer, float alpha)
     {
-        // TODO: Draw graphics to the screen below:
+        // TODO: Draw game elements to the screen below:
 
         ArialFont.DrawText(renderer, $"FPS: {CurrentFPS:F2}");
 
@@ -161,9 +161,15 @@ public class SampleScene : IScene, IDisposable
             if (Camera.SpriteIsInView(sprite))
             {
                 sprite.Draw(renderer, Camera);
-                //Console.WriteLine($"Sprite Rendered {sprite.Name}");
             }
         }
+    }
+
+    public void OnWindowResize(int windowWidth, int windowHeight)
+    {
+        // TODO: Handle logic that should respond to window size changes below:
+
+        Camera.SetViewSize(windowWidth, windowHeight);
     }
 
     private void UpdateFPS(float deltaTime)
@@ -179,13 +185,6 @@ public class SampleScene : IScene, IDisposable
         CurrentFPS = FrameCount / FPSTimer;
         FrameCount = 0;
         FPSTimer = 0f;
-    }
-
-    public void OnWindowResize(int width, int height)
-    {
-        // TODO: Adjust camera, UI elements, screen-space effects, etc.
-
-        Camera.SetViewSize(width, height);
     }
 
     public void Dispose()

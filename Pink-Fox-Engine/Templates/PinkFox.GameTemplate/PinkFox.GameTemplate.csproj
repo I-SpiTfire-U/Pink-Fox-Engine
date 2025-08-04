@@ -1,44 +1,39 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  
-  <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>res/icon/Icon.ico</ApplicationIcon>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="res/icon/Icon.ico" />
-    <None Remove="res/icon/Icon.bmp" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="res/icon/Icon.ico">
-      <LogicalName>Icon.ico</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="res/icon/Icon.bmp">
-      <LogicalName>Icon.bmp</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="SDL3-CS" Version="3.2.18" />
-    <PackageReference Include="SDL3-CS.Native" Version="3.2.18" />
-    <PackageReference Include="SDL3-CS.Native.Image" Version="3.2.4" />
-    <PackageReference Include="SDL3-CS.Native.Mixer" Version="2.8.1.1" />
-    <PackageReference Include="SDL3-CS.Native.TTF" Version="3.2.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
-    <ProjectReference Include="..\..\Engine\PinkFox.Common\PinkFox.Common.csproj" />
-    <ProjectReference Include="..\..\Engine\PinkFox.Cameras\PinkFox.Cameras.csproj" />
-    <ProjectReference Include="..\..\Engine\PinkFox.Graphics\PinkFox.Graphics.csproj" />
-    <ProjectReference Include="..\..\Engine\PinkFox.Input\PinkFox.Input.csproj" />
-    <ProjectReference Include="..\..\Engine\PinkFox.UI\PinkFox.UI.csproj" />
-  </ItemGroup>
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Update="NativeLibs\*.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>%(Filename)%(Extension)</Link>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="Assets\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Common\PinkFox.Common.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Graphics\PinkFox.Graphics.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Input\PinkFox.Input.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Audio\PinkFox.Audio.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.UI\PinkFox.UI.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="SDL3-CS"
+                          Version="3.2.18" />
+        <PackageReference Include="SDL3-CS.Native"
+                          Version="3.2.18" />
+        <PackageReference Include="SDL3-CS.Native.Image"
+                          Version="3.2.4" />
+        <PackageReference Include="SDL3-CS.Native.Mixer"
+                          Version="2.8.1.1" />
+        <PackageReference Include="SDL3-CS.Native.TTF"
+                          Version="3.2.2" />
+    </ItemGroup>
 </Project>

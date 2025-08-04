@@ -1,42 +1,47 @@
+using PinkFox.Core;
 using PinkFox.Core.Scenes;
 
 namespace PinkFox.GameTemplate.Scenes;
 
 public class SampleScene : IScene, IDisposable
 {
+    protected readonly Engine Engine;
     public event Action? OnRequestExit;
     
     private bool _Disposed;
 
-    public SampleScene(nint renderer) { }
+    public SampleScene(Engine engine)
+    {
+        Engine = engine;
+    }
 
     public void LoadContent()
     {
-        // TODO: Load game content below:
+        // TODO: Load game assets such as textures, audio, and other content here:
         
     }
 
     public void Update(float deltaTime)
     {
-        // TODO: Update game objects and code below:
+        // TODO: Update game logic that runs every frame, such as input handling, animations, or timers below:
 
     }
 
-    public void FixedUpdate()
+    public void FixedUpdate(float fixedUpdateInterval)
     {
-        // TODO: Update physics code and fixed values here:
+        // TODO: Update physics or other fixed-timestep systems below:
 
     }
 
-    public void Draw(nint renderer)
+    public void Draw(nint renderer, float alpha)
     {
-        // TODO: Draw graphics to the screen below:
+        // TODO: Draw game elements to the screen below:
 
     }
 
-    public void OnWindowResize(int width, int height)
+    public void OnWindowResize(int windowWidth, int windowHeight)
     {
-        // TODO: Adjust camera, UI elements, screen-space effects, etc.
+        // TODO: Handle logic that should respond to window size changes below:
         
     }
 

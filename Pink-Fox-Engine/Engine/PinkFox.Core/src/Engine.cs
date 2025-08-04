@@ -44,7 +44,7 @@ public sealed class Engine : IDisposable
     public void SetInputManager(IInputManager inputManager) => _InputManager = inputManager;
     public void SetAudioManager(IAudioManager audioManager) => _AudioManager = audioManager;
 
-    public void Initialize(string title, int width, int height)
+    public void Initialize(string title, string iconPath, int width, int height)
     {
         _WindowTitle = title;
         WindowWidth = width;
@@ -82,6 +82,7 @@ public sealed class Engine : IDisposable
         }
 
         SDL.SetRenderDrawColor(_Renderer, 100, 149, 237, 0);
+        SetWindowIcon(iconPath);
 
         TTF.Init();
         _AudioManager?.Init();
@@ -157,6 +158,20 @@ public sealed class Engine : IDisposable
 
         SDL.RenderViewportSet(Renderer);
         SceneManager.GetActiveScene()?.OnWindowResize(width, height);
+    }
+
+    private void SetWindowIcon(string iconPath)
+    {
+        nint surface = Image.Load(iconPath);
+
+        if (surface == nint.Zero)
+        {
+            Console.WriteLine($"Failed to load icon: {SDL.GetError()}");
+            return;
+        }
+
+        SDL.SetWindowIcon(_Window, surface);
+        SDL.Free(surface);
     }
 
     public void Dispose()

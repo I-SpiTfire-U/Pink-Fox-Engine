@@ -6,6 +6,25 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
+        <None Update="NativeLibs\*.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>%(Filename)%(Extension)</Link>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="Assets\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Common\PinkFox.Common.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Graphics\PinkFox.Graphics.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Input\PinkFox.Input.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Audio\PinkFox.Audio.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.UI\PinkFox.UI.csproj" />
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="SDL3-CS"
                           Version="3.2.18" />
         <PackageReference Include="SDL3-CS.Native"
@@ -16,23 +35,5 @@
                           Version="2.8.1.1" />
         <PackageReference Include="SDL3-CS.Native.TTF"
                           Version="3.2.2" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
-        <ProjectReference Include="..\..\Engine\PinkFox.Input\PinkFox.Input.csproj" />
-        <ProjectReference Include="..\..\Engine\PinkFox.Graphics\PinkFox.Graphics.csproj" />
-        <ProjectReference Include="..\..\Engine\PinkFox.Audio\PinkFox.Audio.csproj" />
-        <ProjectReference Include="..\..\Engine\PinkFox.UI\PinkFox.UI.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="NativeLibs\*.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <Link>%(Filename)%(Extension)</Link>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-        <Content Include="Assets\**\*">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
     </ItemGroup>
 </Project>
