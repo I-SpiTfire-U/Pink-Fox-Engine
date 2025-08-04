@@ -39,7 +39,6 @@ _ReSharper*/
 Thumbs.db
 desktop.ini 
 
-out/
 bin/
 obj/
 .vs/
