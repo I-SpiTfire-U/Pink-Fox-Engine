@@ -49,13 +49,13 @@ public static class SceneManager
         _ActiveScene?.Update(deltaTime);
     }
 
-    public static void FixedUpdate()
+    public static void FixedUpdate(float fixedUpdateInterval)
     {
-        _ActiveScene?.FixedUpdate();
+        _ActiveScene?.FixedUpdate(fixedUpdateInterval);
     }
 
-    public static void Draw(nint renderer)
+    public static void Draw(nint renderer, float alpha)
     {
-        _ActiveScene?.Draw(renderer);
+        _ActiveScene?.Draw(renderer, alpha);
     }
 }

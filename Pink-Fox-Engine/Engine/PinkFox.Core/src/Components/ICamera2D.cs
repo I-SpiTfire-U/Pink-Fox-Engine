@@ -8,6 +8,7 @@ public interface ICamera2D
     Vector2 Position { get; }
     int ViewWidth { get; }
     int ViewHeight { get; }
+    Vector2 ViewOffset { get; }
 
     void UpdatePosition(float dx, float dy);
     void SetPosition(Vector2 position);

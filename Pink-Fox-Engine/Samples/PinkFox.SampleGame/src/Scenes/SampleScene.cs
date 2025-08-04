@@ -1,56 +1,97 @@
 using SDL3;
 using PinkFox.Core.Scenes;
-using PinkFox.Core.Components;
 using PinkFox.Graphics.Rendering;
 using PinkFox.Graphics.Cameras;
 using System.Numerics;
+using PinkFox.Core;
+using PinkFox.UI.Text;
 
 namespace PinkFox.SampleGame.Scenes;
 
 public class SampleScene : IScene, IDisposable
 {
+    protected readonly Engine Engine;
     protected float CurrentFPS = 0f;
     protected float FPSTimer = 0f;
     protected int FrameCount = 0;
 
     public event Action? OnRequestExit;
 
-    protected readonly IInputManager InputManager;
-    protected readonly IAudioManager AudioManager;
-
     protected readonly Camera2D Camera;
 
-    protected readonly Font BasicFont;
+    protected readonly Font ArialFont;
     protected readonly Texture2D PlayerTexture;
     protected readonly Texture2D GroundTexture;
 
-    protected readonly Player PlayerObject;
-    protected readonly List<Sprite2D> GameObjects;
+    protected readonly PlayerObject PlayerObject;
+    protected readonly List<ISprite2D> SpritePool;
 
     private bool _Disposed;
 
-    public SampleScene(nint renderer, int windowWidth, int windowHeight, IInputManager inputManager, IAudioManager audioManager)
+    public SampleScene(Engine engine)
     {
-        InputManager = inputManager;
-        AudioManager = audioManager;
+        Engine = engine;
 
         Camera = new(1f, 0.1f, 5f);
-        Camera.SetViewSize(windowWidth, windowHeight);
+        Camera.SetViewSize(Engine.WindowWidth, Engine.WindowHeight);
 
-        BasicFont     = new(@"Assets\Fonts\arial.ttf", 16f);
-        PlayerTexture = new(@"Assets\Images\SpriteAtlas.png", renderer);
-        GroundTexture = new(@"C:\Users\Lex\Media\Pictures\Saved Pictures\1748496217430.jpg", renderer);
+        ArialFont = new(@"Assets\Fonts\arial.ttf", 16f);
 
-        PlayerObject = new(PlayerTexture, new Vector2(0f, 0f), 500f, 400f, 400f, 400f, scale: 0.3f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None)
-        {
-            Animation = new Animation(266, 266, 2)
-        };
+        PlayerTexture = new(@"Assets\Images\Player.png", Engine.Renderer);
+        PlayerObject = new(
+            name: "Player",
+            horizontalVelocity: new Velocity(400f, 400f, 0f),
+            verticalVelocity: new Velocity(500f, 500f, 0f),
+            jumpForce: 400f,
+            texture: PlayerTexture,
+            animations: new()
+            {
+                { "DefaultAnimation", new Animation(266, 266, PlayerTexture)}
+            },
+            position: new Vector2(0f, 0f),
+            origin: null,
+            scale: new Vector2(96f),
+            rotation: 0f,
+            flipMode: SDL.FlipMode.None,
+            isVisible: true
+        );
 
-        Sprite2D GroundSprite   = new(GroundTexture, new Vector2(  0f, 300f), scaleX:  0.5f, scaleY: 0.1f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None);
-        Sprite2D RoofSprite     = new(GroundTexture, new Vector2(200f, 150f), scaleX:  0.5f, scaleY: 0.1f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None);
-        Sprite2D WallSprite     = new(GroundTexture, new Vector2(-32f,  80f), scaleX: 0.03f, scaleY:   1f, rotation: 0f, sourceRect: null, flipMode: SDL.FlipMode.None);
+        GroundTexture = new(@"Assets\Images\Block.png", Engine.Renderer);
+        Sprite2D GroundSprite = new(
+            name: "Ground1",
+            texture: GroundTexture,
+            position: new Vector2(0f, 64),
+            origin: null,
+            sourceRect: null,
+            scale: new Vector2(256f, 32f),
+            rotation: 0f,
+            flipMode: SDL.FlipMode.None,
+            isVisible: true
+        );
+        Sprite2D RoofSprite = new(
+            name: "Ground2",
+            texture: GroundTexture,
+            position: new Vector2(GroundSprite.Position.X + GroundSprite.Scale.X, -70f),
+            origin: null,
+            sourceRect: null,
+            scale: new Vector2(256f, 32f),
+            rotation: 0f,
+            flipMode: SDL.FlipMode.None,
+            isVisible: true
+        );
+        Sprite2D WallSprite = new(
+            name: "Wall1",
+            texture: GroundTexture,
+            position: new Vector2(-32f, -160f),
+            origin: null,
+            sourceRect: null,
+            scale: new Vector2(32f, 256f),
+            rotation: 0f,
+            flipMode: SDL.FlipMode.None,
+            isVisible: true
+        );
 
-        GameObjects = [ GroundSprite, RoofSprite, WallSprite ];
+        SpritePool = [ GroundSprite, RoofSprite, WallSprite ];
     }
 
     public void LoadContent()
@@ -58,11 +99,11 @@ public class SampleScene : IScene, IDisposable
         // TODO: Load game content below:
 
         // Audio
-        AudioManager.LoadSound("Jump", @"Assets\Audio\Jump.wav");
-        AudioManager.LoadTrack("Louvre Museum Invasion", @"Assets\Audio\Louvre Museum Invasion.mp3");
+        Engine.AudioManager.LoadSound("Jump", @"Assets\Audio\Jump.wav");
+        Engine.AudioManager.LoadTrack("Louvre Museum Invasion", @"Assets\Audio\Louvre Museum Invasion.mp3");
 
-        AudioManager.SetSoundVolume("Jump", 0.3f);
-        AudioManager.SetMusicVolume(0.1f);
+        Engine.AudioManager.SetSoundVolume("Jump", 0.3f);
+        Engine.AudioManager.SetMusicVolume(0.1f);
     }
 
     public void Update(float deltaTime)
@@ -71,53 +112,58 @@ public class SampleScene : IScene, IDisposable
 
         UpdateFPS(deltaTime);
 
-        if (!AudioManager.IsMusicPlaying)
+        if (!Engine.AudioManager.IsMusicPlaying)
         {
-            AudioManager.PlayMusic("Louvre Museum Invasion");
+            Engine.AudioManager.PlayMusic("Louvre Museum Invasion");
         }
 
-        PlayerObject.Update(deltaTime, GameObjects, InputManager, AudioManager);
+        PlayerObject.Update(deltaTime, Engine.InputManager);
 
-        if (InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Up) || (InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.RightShoulder) ?? false))
+        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Up) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.RightShoulder) ?? false))
         {
             Camera.UpdateZoom(1f * deltaTime);
         }
-        if (InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Down) || (InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.LeftShoulder) ?? false))
+        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL.Keycode.Down) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.LeftShoulder) ?? false))
         {
             Camera.UpdateZoom(-1f * deltaTime);
         }
 
-        Camera.SetPosition(PlayerObject.Center - new Vector2(Camera.ViewWidth, Camera.ViewHeight) * 0.5f / Camera.Zoom);
+        Camera.SetPosition(PlayerObject.Origin - Camera.ViewOffset);
 
-        if (InputManager.Mouse.Collider.IsCollidingWith(PlayerObject.Collider) && InputManager.Mouse.IsButtonDown(SDL.MouseButtonFlags.Left))
+        if (Engine.InputManager.Mouse.Collider.IsCollidingWith(PlayerObject.Collider) && Engine.InputManager.Mouse.IsButtonDown(SDL.MouseButtonFlags.Left))
         {
             OnRequestExit?.Invoke();
         }
 
-        if (InputManager.Keyboard.IsKeyDown(SDL.Keycode.Escape) || (InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.Start) ?? false))
+        if (Engine.InputManager.Keyboard.IsKeyDown(SDL.Keycode.Escape) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL.GamepadButton.Start) ?? false))
         {
             OnRequestExit?.Invoke();
         }
     }
 
-    public void FixedUpdate()
+    public void FixedUpdate(float fixedUpdateInterval)
     {
         // TODO: Update physics code and fixed values here:
 
+        PlayerObject.FixedUpdate(fixedUpdateInterval, SpritePool, Engine.AudioManager);
     }
 
-    public void Draw(nint renderer)
+    public void Draw(nint renderer, float alpha)
     {
         // TODO: Draw graphics to the screen below:
 
-        PlayerObject.Draw(renderer, Camera);
+        ArialFont.DrawText(renderer, $"FPS: {CurrentFPS:F2}");
 
-        foreach (Sprite2D sprite in GameObjects)
+        PlayerObject.Draw(renderer, Camera, alpha);
+
+        foreach (ISprite2D sprite in SpritePool)
         {
-            sprite.Draw(renderer, Camera);
+            if (Camera.SpriteIsInView(sprite))
+            {
+                sprite.Draw(renderer, Camera);
+                //Console.WriteLine($"Sprite Rendered {sprite.Name}");
+            }
         }
-
-        BasicFont.DrawText(renderer, $"FPS: {CurrentFPS:F2}");
     }
 
     private void UpdateFPS(float deltaTime)
@@ -125,7 +171,7 @@ public class SampleScene : IScene, IDisposable
         FrameCount++;
         FPSTimer += deltaTime;
 
-        if (FPSTimer < 1f)
+        if (FPSTimer < 0.1f)
         {
             return;
         }

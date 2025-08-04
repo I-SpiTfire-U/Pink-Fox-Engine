@@ -6,8 +6,8 @@ public static class Collision
 {
     public static bool CircleOnCircleCollision(CircleCollider c1, CircleCollider c2)
     {
-        float dx = c1.CenterX - c2.CenterX;
-        float dy = c1.CenterY - c2.CenterY;
+        float dx = c1.Center.X - c2.Center.X;
+        float dy = c1.Center.Y - c2.Center.Y;
         float distanceSquared = dx * dx + dy * dy;
         float radiusSum = c1.Radius + c2.Radius;
         return distanceSquared <= radiusSum * radiusSum;
@@ -15,24 +15,24 @@ public static class Collision
 
     public static bool RectOnRectCollision(RectCollider a, RectCollider b)
     {
-        return a.X < b.X + b.Width && a.X + a.Width > b.X && a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
+        return a.Position.X < b.Position.X + b.Size.X && a.Position.X + a.Size.X > b.Position.X && a.Position.Y < b.Position.Y + b.Size.Y && a.Position.Y + a.Size.Y > b.Position.Y;
     }
 
     public static bool CircleOnRectCollision(CircleCollider circle, RectCollider box)
     {
-        float closestX = Math.Clamp(circle.CenterX, box.X, box.X + box.Width);
-        float closestY = Math.Clamp(circle.CenterY, box.Y, box.Y + box.Height);
+        float closestX = Math.Clamp(circle.Center.X, box.Position.X, box.Position.X + box.Size.X);
+        float closestY = Math.Clamp(circle.Center.Y, box.Position.Y, box.Position.Y + box.Size.Y);
 
-        float dx = circle.CenterX - closestX;
-        float dy = circle.CenterY - closestY;
+        float dx = circle.Center.X - closestX;
+        float dy = circle.Center.Y - closestY;
 
         return (dx * dx + dy * dy) <= (circle.Radius * circle.Radius);
     }
 
     public static Vector2 GetDeltaTo(ICollider c1, ICollider c2, bool normalize = false)
     {
-        float dx = c1.CenterX - c2.CenterX;
-        float dy = c1.CenterY - c2.CenterY;
+        float dx = c1.Center.X - c2.Center.X;
+        float dy = c1.Center.Y - c2.Center.Y;
 
         if (!normalize)
         {
@@ -47,18 +47,18 @@ public static class Collision
     {
         return collider switch
         {
-            RectCollider rect => (rect.X, rect.X + rect.Width, rect.Y, rect.Y + rect.Height),
-            CircleCollider circle => (circle.CenterX - circle.Radius, circle.CenterX + circle.Radius, circle.CenterY - circle.Radius, circle.CenterY + circle.Radius),
+            RectCollider rect => (rect.Position.X, rect.Position.X + rect.Size.X, rect.Position.Y, rect.Position.Y + rect.Size.Y),
+            CircleCollider circle => (circle.Center.X - circle.Radius, circle.Center.X + circle.Radius, circle.Center.Y - circle.Radius, circle.Center.Y + circle.Radius),
             _ => throw new NotSupportedException("Unsupported collider type")
         };
     }
     
     public static CollisionDirection GetCollisionDirection(ICollider a, ICollider b)
     {
-        float ax = a.CenterX;
-        float ay = a.CenterY;
-        float bx = b.CenterX;
-        float by = b.CenterY;
+        float ax = a.Center.X;
+        float ay = a.Center.Y;
+        float bx = b.Center.X;
+        float by = b.Center.Y;
 
         (float aLeft, float aRight, float aTop, float aBottom) = GetBounds(a);
         (float bLeft, float bRight, float bTop, float bBottom) = GetBounds(b);

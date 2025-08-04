@@ -1,9 +1,10 @@
+using System.Numerics;
+
 namespace PinkFox.Core.Collisions;
 
 public interface ICollider
 {
-    float CenterX { get; init; }
-    float CenterY { get; init; }
+    Vector2 Center { get; init; }
 
     float Top { get; init; }
     float Bottom { get; init; }

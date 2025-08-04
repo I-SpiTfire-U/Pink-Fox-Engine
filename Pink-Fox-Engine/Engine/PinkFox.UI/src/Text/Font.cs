@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using SDL3;
 
-namespace PinkFox.Graphics.Rendering;
+namespace PinkFox.UI.Text;
 
 public class Font : IDisposable
 {

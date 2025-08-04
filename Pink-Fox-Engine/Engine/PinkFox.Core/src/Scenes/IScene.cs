@@ -6,8 +6,8 @@ public interface IScene
 
     void LoadContent();
     void Update(float deltaTime);
-    void FixedUpdate();
-    void Draw(nint renderer);
+    void FixedUpdate(float fixedUpdateInterval);
+    void Draw(nint renderer, float alpha);
     void OnWindowResize(int width, int height);
     
     void Dispose();

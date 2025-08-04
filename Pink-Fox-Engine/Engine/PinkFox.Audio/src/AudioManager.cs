@@ -37,7 +37,7 @@ public class AudioManager : IAudioManager
             Channels = 2
         };
 
-        if (Mixer.OpenAudio(SDL.AudioDeviceDefaultPlayback, audioSpec))
+        if (!Mixer.OpenAudio(SDL.AudioDeviceDefaultPlayback, audioSpec))
         {
             Console.WriteLine($"Mix_OpenAudio failed: {SDL.GetError()}");
             _Initialized = true;

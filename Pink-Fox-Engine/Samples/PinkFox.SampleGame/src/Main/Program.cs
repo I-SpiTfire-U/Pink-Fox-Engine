@@ -14,18 +14,16 @@ public class Program
         const int DefaultWindowHeight = 600;
 
         using Engine engine = new();
+        engine.EnableFPSLimit(true);
         engine.SetTargetFPS(120);
-
-        // Enable for user input when using PinkFox.Input
-        engine.InputManager = new InputManager();
-
-        // Enable for audio when using PinkFox.Audio
-        engine.AudioManager = new AudioManager();
         
+        engine.SetInputManager(new InputManager());
+        engine.SetAudioManager(new AudioManager());
+
         engine.OnStart = () =>
         {
             SceneManager.SetExitAction(engine.Stop);
-            SceneManager.LoadScene(new SampleScene(engine.Renderer, DefaultWindowWidth, DefaultWindowHeight, engine.InputManager, engine.AudioManager));
+            SceneManager.LoadScene(new SampleScene(engine));
         };
 
         engine.Initialize("My Game", DefaultWindowWidth, DefaultWindowHeight);

@@ -10,6 +10,8 @@ public sealed class Engine : IDisposable
     private int _FixedUPS = 60;
     private float TargetFrameTime => 1.0f / _TargetFPS;
     private float FixedUpdateInterval => 1.0f / _FixedUPS;
+    private bool _EnableFPSLimit = false;
+    public void EnableFPSLimit(bool enable) => _EnableFPSLimit = enable;
 
     private bool _Running = true;
     private float _Accumulator;
@@ -19,34 +21,55 @@ public sealed class Engine : IDisposable
 
     private nint _Window;
     private nint _Renderer;
-    private int _WindowWidth;
-    private int _WindowHeight;
+    public int WindowWidth { get; private set; }
+    public int WindowHeight { get; private set; }
     private string _WindowTitle = string.Empty;
 
     public nint Renderer => _Renderer;
 
-    public IInputManager? InputManager { get; set; }
-    public IAudioManager? AudioManager { get; set; }
+    private IInputManager? _InputManager = null;
+    private IAudioManager? _AudioManager = null;
+    
+    public IInputManager InputManager => _InputManager ?? throw new InvalidOperationException("No input manager available");
+    public IAudioManager AudioManager => _AudioManager ?? throw new InvalidOperationException("No audio manager available");
+    public IInputManager? OptionalInputManager => _InputManager;
+    public IAudioManager? OptionalAudioManager => _AudioManager;
+
     public Action? OnStart { get; set; }
 
     public void SetTargetFPS(int fps) => _TargetFPS = fps;
     public void SetFixedUPS(int ups) => _FixedUPS = ups;
     public void Stop() => _Running = false;
 
+    public void SetInputManager(IInputManager inputManager) => _InputManager = inputManager;
+    public void SetAudioManager(IAudioManager audioManager) => _AudioManager = audioManager;
+
     public void Initialize(string title, int width, int height)
     {
         _WindowTitle = title;
-        _WindowWidth = width;
-        _WindowHeight = height;
+        WindowWidth = width;
+        WindowHeight = height;
         _Accumulator = 0;
         _LastTicks = SDL.GetTicks();
 
-        if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Audio | SDL.InitFlags.Gamepad | SDL.InitFlags.Joystick))
+        SDL.InitFlags initFlags = SDL.InitFlags.Video;
+
+        if (_AudioManager is not null)
+        {
+            initFlags |= SDL.InitFlags.Audio;
+        }
+
+        if (_InputManager is not null)
+        {
+            initFlags |= SDL.InitFlags.Gamepad | SDL.InitFlags.Joystick;
+        }
+
+        if (!SDL.Init(initFlags))
         {
             throw new Exception($"SDL could not initialize: {SDL.GetError()}");
         }
 
-        if (!SDL.CreateWindowAndRenderer(_WindowTitle, _WindowWidth, _WindowHeight, SDL.WindowFlags.Resizable, out _Window, out _Renderer))
+        if (!SDL.CreateWindowAndRenderer(_WindowTitle, WindowWidth, WindowHeight, SDL.WindowFlags.Resizable, out _Window, out _Renderer))
         {
             SDL.Quit();
             throw new Exception($"Error creating window/renderer: {SDL.GetError()}");
@@ -58,10 +81,10 @@ public sealed class Engine : IDisposable
             throw new Exception("Window or Renderer creation failed.");
         }
 
-        TTF.Init();
-
         SDL.SetRenderDrawColor(_Renderer, 100, 149, 237, 0);
-        AudioManager?.Init();
+
+        TTF.Init();
+        _AudioManager?.Init();
     }
 
     public void Run()
@@ -70,12 +93,15 @@ public sealed class Engine : IDisposable
         {
             ulong nowTicks = SDL.GetTicks();
             float deltaTime = (nowTicks - _LastTicks) / 1000f;
+
             _LastTicks = nowTicks;
-            _Accumulator += deltaTime;
+            deltaTime = MathF.Min(deltaTime, 1f);
+
+            _Accumulator = MathF.Min(_Accumulator + deltaTime, 0.50f);
 
             while (SDL.PollEvent(out SDL.Event sdlEvent))
             {
-                InputManager?.ProcessEvent(sdlEvent);
+                _InputManager?.ProcessEvent(sdlEvent);
 
                 SDL.EventType eventType = (SDL.EventType)sdlEvent.Type;
                 switch (eventType)
@@ -97,33 +123,37 @@ public sealed class Engine : IDisposable
                 continue;
             }
 
-            SceneManager.Update(deltaTime);
-
             while (_Accumulator >= FixedUpdateInterval)
             {
-                SceneManager.FixedUpdate();
+                SceneManager.FixedUpdate(FixedUpdateInterval);
                 _Accumulator -= FixedUpdateInterval;
             }
 
+            SceneManager.Update(deltaTime);
+
             SDL.RenderClear(_Renderer);
-            SceneManager.Draw(_Renderer);
+            float alpha = _Accumulator / FixedUpdateInterval;
+            SceneManager.Draw(_Renderer, alpha);
             SDL.RenderPresent(_Renderer);
 
-            InputManager?.Clear();
+            _InputManager?.Clear();
 
-            uint frameTime = (uint)(SDL.GetTicks() - nowTicks);
-            int delay = (int)(TargetFrameTime * 1000) - (int)frameTime;
-            if (delay > 0)
+            if (_EnableFPSLimit)
             {
-                SDL.Delay((uint)delay);
+                float frameEnd = SDL.GetTicks() - nowTicks;
+                float delay = TargetFrameTime * 1000 - frameEnd;
+                if (delay > 0f)
+                {
+                    SDL.Delay((uint)delay);
+                }
             }
         }
     }
 
     public void HandleWindowResize(int width, int height)
     {
-        _WindowWidth = width;
-        _WindowHeight = height;
+        WindowWidth = width;
+        WindowHeight = height;
 
         SDL.RenderViewportSet(Renderer);
         SceneManager.GetActiveScene()?.OnWindowResize(width, height);
@@ -153,7 +183,7 @@ public sealed class Engine : IDisposable
             {
                 SDL.DestroyWindow(_Window);
             }
-            AudioManager?.Shutdown();
+            _AudioManager?.Shutdown();
             SDL.Quit();
         }
 

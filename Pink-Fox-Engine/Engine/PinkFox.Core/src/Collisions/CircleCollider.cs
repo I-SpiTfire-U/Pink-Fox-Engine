@@ -1,15 +1,27 @@
+using System.Numerics;
+
 namespace PinkFox.Core.Collisions;
 
-public readonly struct CircleCollider(float centerX, float centerY, float radius) : ICollider
+public readonly struct CircleCollider : ICollider
 {
-    public float CenterX { get; init; } = centerX;
-    public float CenterY { get; init; } = centerY;
-    public float Radius { get; init; } = radius;
+    public Vector2 Center { get; init; }
+    public float Radius { get; init; }
 
-    public float Top { get; init; } = centerY - radius;
-    public float Bottom { get; init; } = centerY + radius;
-    public float Left { get; init; } = centerX - radius;
-    public float Right { get; init; } = centerX + radius;
+    public float Top { get; init; }
+    public float Bottom { get; init; }
+    public float Left { get; init; }
+    public float Right { get; init; }
+
+    public CircleCollider(Vector2 center, float radius)
+    {
+        Center = center;
+        Radius = radius;
+
+        Left = Center.X - radius;
+        Right = Center.X + radius;
+        Top = Center.Y - radius;
+        Bottom = Center.Y + radius;
+    }
 
     public bool IsCollidingWith(ICollider collider)
     {

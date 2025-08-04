@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="SDL3-CS"
@@ -23,6 +22,7 @@
         <ProjectReference Include="..\..\Engine\PinkFox.Input\PinkFox.Input.csproj" />
         <ProjectReference Include="..\..\Engine\PinkFox.Graphics\PinkFox.Graphics.csproj" />
         <ProjectReference Include="..\..\Engine\PinkFox.Audio\PinkFox.Audio.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.UI\PinkFox.UI.csproj" />
     </ItemGroup>
     <ItemGroup>
         <None Update="NativeLibs\*.dll">
