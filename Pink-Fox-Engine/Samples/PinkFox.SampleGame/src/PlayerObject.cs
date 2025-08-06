@@ -9,6 +9,9 @@ namespace PinkFox.SampleGame;
 
 public class PlayerObject : AnimatedSprite2D, ISprite2D
 {
+    private Vector2 _PreviousPosition;
+    private bool _JumpRequested = false;
+    private float _MoveDirection = 0f;
     private readonly Velocity _HorizontalVelocity;
     private readonly Velocity _VerticalVelocity;
     private readonly float _JumpForce;
@@ -23,20 +26,15 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
         _JumpForce = jumpForce;
     }
 
-    private Vector2 _PreviousPosition;
-
-    private bool _JumpRequested = false;
-    private float _MoveDirection = 0f;
     public void Update(float deltaTime, IInputManager inputManager)
     {
         _PreviousPosition = Position;
-        
+        _MoveDirection = 0f;
+
         if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_SPACE) || (inputManager.Gamepads.AtIndex(0)?.IsButtonDown(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH) ?? false))
         {
             _JumpRequested = true;
         }
-
-        _MoveDirection = 0f;
         if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_A) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) < 0)
         {
             _MoveDirection = -1f;
@@ -48,12 +46,36 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
     }
 
     public void FixedUpdate(float fixedUpdateInterval, List<ISprite2D> spritePool, IAudioManager audioManager)
-    {   
-        float moveAcceleration = _HorizontalVelocity.AccelerationRate;
-        float moveDeceleration = 1000f;
+    {
+        UpdateVerticalValues(fixedUpdateInterval, spritePool, audioManager);
+        UpdateHorizontalValues(fixedUpdateInterval, spritePool);
+        CorrectSmallOverlaps(spritePool);
 
-        float targetVelocity = 0f;
+        if (!_IsGrounded)
+        {
+            SetCurrentFrame(1);
+            return;
+        }
 
+        if (_HorizontalVelocity.CurrentVelocity >= _HorizontalVelocity.MaximumVelocity || _HorizontalVelocity.CurrentVelocity <= -_HorizontalVelocity.MaximumVelocity)
+        {
+            SetCurrentFrame(2);
+            return;
+        }
+        
+        SetCurrentFrame(0);
+    }
+
+    public unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null, float alpha = 1f)
+    {
+        Vector2 originalPosition = Position;
+        Position = Vector2.Lerp(_PreviousPosition, originalPosition, alpha);
+        base.Draw(renderer, camera2D);
+        Position = originalPosition;
+    }
+
+    private void UpdateVerticalValues(float fixedUpdateInterval, List<ISprite2D> spritePool, IAudioManager audioManager)
+    {
         _VerticalVelocity.CurrentVelocity += _VerticalVelocity.AccelerationRate * fixedUpdateInterval;
 
         if (_JumpRequested)
@@ -63,6 +85,13 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
         }
 
         MoveVertically(_VerticalVelocity.CurrentVelocity * fixedUpdateInterval, spritePool);
+    }
+
+    private void UpdateHorizontalValues(float fixedUpdateInterval, List<ISprite2D> spritePool)
+    {
+        float moveAcceleration = _HorizontalVelocity.AccelerationRate;
+        float moveDeceleration = _HorizontalVelocity.AccelerationRate * 3;
+        float targetVelocity = 0f;
 
         bool isMoving = false;
         if (_MoveDirection != 0f)
@@ -120,22 +149,6 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
         {
             MoveHorizontally(_HorizontalVelocity.CurrentVelocity * fixedUpdateInterval, spritePool);
         }
-
-        if (_IsGrounded)
-        {
-            SetCurrentFrame(_HorizontalVelocity.CurrentVelocity >= _HorizontalVelocity.MaximumVelocity || _HorizontalVelocity.CurrentVelocity <= -_HorizontalVelocity.MaximumVelocity ? 2 : 0);
-            return;
-        }
-        SetCurrentFrame(1);
-    }
-
-    public unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null, float alpha = 1f)
-    {
-        Vector2 interpolatedPosition = Vector2.Lerp(_PreviousPosition, Position, alpha);
-        Vector2 originalPosition = Position;
-        Position = interpolatedPosition;
-        base.Draw(renderer, camera2D);
-        Position = originalPosition;
     }
 
     private void Jump(float jumpVelocity, IAudioManager audioManager)
@@ -153,12 +166,13 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
     private void MoveHorizontally(float amount, List<ISprite2D> spritePool)
     {
         float x = Position.X + amount;
+        RectCollider futureCollider = new(new(x, Position.Y), Scale, Center);
 
         foreach (ISprite2D sprite in spritePool)
         {
-            if (Collider.IsCollidingWith(sprite.Collider))
+            if (sprite.Collider.IsCollidingWith(futureCollider))
             {
-                CollisionDirection dir = Collision.GetCollisionDirection(Collider, sprite.Collider);
+                CollisionDirection dir = Collision.GetCollisionDirection(futureCollider, sprite.Collider);
                 if (dir == CollisionDirection.Left && _HorizontalVelocity.CurrentVelocity <= 0f)
                 {
                     x = sprite.Collider.Right;
@@ -181,24 +195,25 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
     private void MoveVertically(float amount, List<ISprite2D> spritePool)
     {
         float y = Position.Y + amount;
+        RectCollider futureCollider = new(new(Position.X, y), Scale, Center);
         bool isGrounded = false;
 
         foreach (ISprite2D sprite in spritePool)
         {
-            if (Collider.IsCollidingWith(sprite.Collider))
+            if (sprite.Collider.IsCollidingWith(futureCollider))
             {
-                CollisionDirection dir = Collision.GetCollisionDirection(Collider, sprite.Collider);
-                if (dir == CollisionDirection.Bottom && _VerticalVelocity.CurrentVelocity >= -0.1f)
+                CollisionDirection dir = Collision.GetCollisionDirection(futureCollider, sprite.Collider);
+                if (dir == CollisionDirection.Top && _VerticalVelocity.CurrentVelocity <= 0f)
+                {
+                    y = sprite.Collider.Bottom;
+                    _VerticalVelocity.CurrentVelocity = 0f;
+                    break;
+                }
+                if (dir == CollisionDirection.Bottom && _VerticalVelocity.CurrentVelocity >= 0f)
                 {
                     y = sprite.Collider.Top - Scale.Y + 1;
                     _VerticalVelocity.CurrentVelocity = 0f;
                     isGrounded = true;
-                    break;
-                }
-                if (dir == CollisionDirection.Top && _VerticalVelocity.CurrentVelocity <= 0.1f)
-                {
-                    y = sprite.Collider.Bottom;
-                    _VerticalVelocity.CurrentVelocity = 0f;
                     break;
                 }
             }
@@ -206,6 +221,50 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
 
         _IsGrounded = isGrounded;
         Position = new(Position.X, y);
+        Origin = Center;
+    }
+
+    private void CorrectSmallOverlaps(List<ISprite2D> spritePool)
+    {
+        RectCollider currentCollider = new(Position, Scale, Center);
+        const float epsilon = 0.1f;
+
+        foreach (var sprite in spritePool)
+        {
+            if (!sprite.Collider.IsCollidingWith(currentCollider))
+            {
+                continue;
+            }
+
+            CollisionDirection dir = Collision.GetCollisionDirection(currentCollider, sprite.Collider);
+
+            switch (dir)
+            {
+                case CollisionDirection.Top:
+                    Position = new(Position.X, sprite.Collider.Bottom + epsilon);
+                    _VerticalVelocity.CurrentVelocity = 0f;
+                    break;
+
+                case CollisionDirection.Bottom:
+                    Position = new(Position.X, sprite.Collider.Top - Scale.Y - epsilon);
+                    _VerticalVelocity.CurrentVelocity = 0f;
+                    _IsGrounded = true;
+                    break;
+
+                case CollisionDirection.Left:
+                    Position = new(sprite.Collider.Right + epsilon, Position.Y);
+                    _HorizontalVelocity.CurrentVelocity = 0f;
+                    break;
+
+                case CollisionDirection.Right:
+                    Position = new(sprite.Collider.Left - Scale.X - epsilon, Position.Y);
+                    _HorizontalVelocity.CurrentVelocity = 0f;
+                    break;
+            }
+
+            currentCollider = new(Position, Scale, Center);
+        }
+
         Origin = Center;
     }
 }

@@ -68,7 +68,7 @@ public class Animation
         {
             _CurrentFrame = _FramesPerColumn - 1;
         }
-        if (_CurrentFrame >= _FramesPerColumn)
+        if (_CurrentFrame >= _NumberOfFrames)
         {
             _CurrentFrame = 0;
         }

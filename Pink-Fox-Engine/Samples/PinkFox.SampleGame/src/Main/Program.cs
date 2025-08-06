@@ -19,6 +19,7 @@ public class Program
         
         engine.SetInputManager(new InputManager());
         engine.SetAudioManager(new AudioManager());
+        // engine.SetWindowFlags();
 
         engine.OnStart = () =>
         {

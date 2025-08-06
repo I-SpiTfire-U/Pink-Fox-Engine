@@ -40,6 +40,7 @@ public class Font : IDisposable
             SDL3.SDL_free(surface);
             return;
         }
+        SDL3.SDL_DestroySurface(surface);
 
         (int width, int height) = GetWidthAndHeight(surface);
 
@@ -52,9 +53,7 @@ public class Font : IDisposable
         };
 
         SDL3.SDL_RenderTexture(renderer, texture, null, &destinationRect);
-
         SDL3.SDL_DestroyTexture(texture);
-        SDL3.SDL_DestroySurface(surface);
     }
 
     public void SetColor(SDL_Color color)

@@ -43,6 +43,8 @@ public sealed class Engine : IDisposable
 
     public void SetInputManager(IInputManager inputManager) => _InputManager = inputManager;
     public void SetAudioManager(IAudioManager audioManager) => _AudioManager = audioManager;
+    public void SetWindowFlags(SDL_WindowFlags windowFlags) => _WindowFlags = windowFlags;
+    private SDL_WindowFlags _WindowFlags;
 
     public void Initialize(string title, string iconPath, int width, int height)
     {
@@ -53,7 +55,6 @@ public sealed class Engine : IDisposable
         _LastTicks = SDL3.SDL_GetTicks();
 
         SDL_InitFlags initFlags = SDL_InitFlags.SDL_INIT_VIDEO;
-        
 
         if (_AudioManager is not null)
         {
@@ -72,7 +73,7 @@ public sealed class Engine : IDisposable
 
         unsafe
         {
-            _Window = SDL3.SDL_CreateWindow(_WindowTitle, WindowWidth, WindowHeight, SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+            _Window = SDL3.SDL_CreateWindow(_WindowTitle, WindowWidth, WindowHeight, _WindowFlags);
             if (_Window is null)
             {
                 throw new Exception($"Failed to create window: {SDL3.SDL_GetError()}");
@@ -167,6 +168,8 @@ public sealed class Engine : IDisposable
                 }
             }
         }
+        
+        Dispose();
     }
 
     public void HandleWindowResize(int width, int height)
@@ -225,13 +228,16 @@ public sealed class Engine : IDisposable
                 {
                     SDL3.SDL_DestroyRenderer(_Renderer);
                 }
+                
                 if (_Window is not null)
                 {
                     SDL3.SDL_DestroyWindow(_Window);
                 }
             }
+            
             SceneManager.UnloadScene();
             _AudioManager?.Shutdown();
+            _InputManager?.Dispose();
             SDL3_ttf.TTF_Quit();
             SDL3.SDL_Quit();
         }

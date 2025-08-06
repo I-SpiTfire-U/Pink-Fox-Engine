@@ -5,8 +5,8 @@ namespace PinkFox.Input.InputDevices;
 
 public class Gamepad : IGamepad, IDisposable
 {
-    public unsafe SDL_Gamepad* Handle { get; }
-    public SDL_JoystickID InstanceId { get; }
+    public unsafe SDL_Gamepad* Handle { get; init; }
+    public SDL_JoystickID InstanceId { get; init; }
 
     private readonly HashSet<SDL_GamepadButton> _ButtonsDown = [];
     private readonly HashSet<SDL_GamepadButton> _ButtonsUp = [];
@@ -25,7 +25,7 @@ public class Gamepad : IGamepad, IDisposable
     private bool _Disposed;
 
     private const short DeadZone = 8000;
-    
+
     public unsafe Gamepad(SDL_Gamepad* handle)
     {
         Handle = handle;
@@ -43,18 +43,15 @@ public class Gamepad : IGamepad, IDisposable
             case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
                 _ButtonsDown.Add(sdlEvent.gbutton.Button);
                 _ButtonsHeld.Add(sdlEvent.gbutton.Button);
-                Console.WriteLine($"Button down: {sdlEvent.gbutton.Button}");
                 break;
 
             case SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
                 _ButtonsUp.Add(sdlEvent.gbutton.Button);
                 _ButtonsHeld.Remove(sdlEvent.gbutton.Button);
-                Console.WriteLine($"Button up: {sdlEvent.gbutton.Button}");
                 break;
 
             case SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
                 _AxisValues[sdlEvent.gaxis.Axis] = sdlEvent.gaxis.value;
-                Console.WriteLine($"Axis {sdlEvent.gaxis.Axis}: {sdlEvent.gaxis.value}");
                 break;
         }
     }
@@ -80,6 +77,12 @@ public class Gamepad : IGamepad, IDisposable
         return Math.Clamp(rawValue / 32767f, -1f, 1f);
     }
 
+    public void Clear()
+    {
+        _ButtonsDown.Clear();
+        _ButtonsUp.Clear();
+    }
+
     public void Dispose()
     {
         Dispose(true);
@@ -95,21 +98,17 @@ public class Gamepad : IGamepad, IDisposable
 
         if (disposing)
         {
+            Clear();
             unsafe
             {
-                if (Handle is not null)
-                {
-                    Clear();
-                    SDL3.SDL_CloseGamepad(Handle);
-                }
+                SDL3.SDL_CloseGamepad(Handle);
             }
         }
         _Disposed = true;
     }
-
-    public void Clear()
+    
+    ~Gamepad()
     {
-        _ButtonsDown.Clear();
-        _ButtonsUp.Clear();
+        Dispose(false);
     }
 }

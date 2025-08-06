@@ -16,6 +16,6 @@ public interface IGamepadCollection
 
     void ProcessEvent(SDL_JoystickID instanceId, SDL_Event sdlEvent);
 
-    public void Update();
-    void Clear();
+    public void Clear();
+    void Dispose();
 }

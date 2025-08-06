@@ -3,11 +3,13 @@ using SDL;
 
 namespace PinkFox.Input.InputDevices;
 
-public class GamepadCollection : IGamepadCollection
+public class GamepadCollection : IGamepadCollection, IDisposable
 {
     public int Count => _Gamepads.Count;
     public bool AreGamepadsConnected => _Gamepads.Count > 0;
     private readonly Dictionary<SDL_JoystickID, IGamepad> _Gamepads = [];
+
+    private bool _Disposed;
 
     public void AddGamepad(SDL_JoystickID instanceId, IGamepad gamepad)
     {
@@ -52,17 +54,7 @@ public class GamepadCollection : IGamepadCollection
         {
             return;
         }
-
         _Gamepads[instanceId].ProcessEvent(sdlEvent);
-        Console.WriteLine($"Processed Event: Instance ID {sdlEvent.gbutton.Button}");
-    }
-
-    public void Update()
-    {
-        foreach (IGamepad gamepad in _Gamepads.Values)
-        {
-            gamepad.Clear();
-        }
     }
 
     public void Clear()
@@ -70,8 +62,36 @@ public class GamepadCollection : IGamepadCollection
         foreach (IGamepad gamepad in _Gamepads.Values)
         {
             gamepad.Clear();
-            gamepad.Dispose();
         }
-        _Gamepads.Clear();
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_Disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            Clear();
+            foreach (IGamepad gamepad in _Gamepads.Values)
+            {
+                gamepad.Dispose();
+            }
+            _Gamepads.Clear();
+        }
+        _Disposed = true;
+    }
+    
+    ~GamepadCollection()
+    {
+        Dispose(false);
     }
 }

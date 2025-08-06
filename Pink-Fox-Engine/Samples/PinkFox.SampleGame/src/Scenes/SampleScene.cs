@@ -117,8 +117,6 @@ public class SampleScene : IScene, IDisposable
             Engine.AudioManager.PlayMusic("Louvre Museum Invasion");
         }
 
-        PlayerObject.Update(deltaTime, Engine.InputManager);
-
         if (Engine.InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_UP) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ?? false))
         {
             Camera.UpdateZoom(1f * deltaTime);
@@ -139,6 +137,8 @@ public class SampleScene : IScene, IDisposable
         {
             OnRequestExit?.Invoke();
         }
+
+        PlayerObject.Update(deltaTime, Engine.InputManager);
     }
 
     public void FixedUpdate(float fixedUpdateInterval)
@@ -210,6 +210,7 @@ public class SampleScene : IScene, IDisposable
             {
                 sprite2D.Dispose();
             }
+            SpritePool.Clear();
         }
 
         _Disposed = true;

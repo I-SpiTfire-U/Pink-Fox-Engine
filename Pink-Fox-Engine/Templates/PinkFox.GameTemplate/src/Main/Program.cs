@@ -20,6 +20,8 @@ public class Program
 
         // Enable for audio when using PinkFox.Audio
         // engine.SetAudioManager(new AudioManager());
+        
+        // engine.SetWindowFlags();
 
         engine.OnStart = () =>
         {

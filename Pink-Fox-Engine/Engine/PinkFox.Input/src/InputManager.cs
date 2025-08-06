@@ -4,11 +4,13 @@ using SDL;
 
 namespace PinkFox.Input;
 
-public class InputManager : IInputManager
+public class InputManager : IInputManager, IDisposable
 {
     public IKeyboard Keyboard { get; } = new Keyboard();
     public IMouse Mouse { get; } = new Mouse();
     public IGamepadCollection Gamepads { get; } = new GamepadCollection();
+
+    private bool _Disposed;
 
     public void ProcessEvent(SDL_Event sdlEvent)
     {
@@ -76,6 +78,33 @@ public class InputManager : IInputManager
     {
         Keyboard.Clear();
         Mouse.Clear();
-        Gamepads.Update();
+        Gamepads.Clear();
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_Disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            Clear();
+            Gamepads.Dispose();
+        }
+        
+        _Disposed = true;
+    }
+    
+    ~InputManager()
+    {
+        Dispose(false);
     }
 }

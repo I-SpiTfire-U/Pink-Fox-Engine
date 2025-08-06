@@ -7,33 +7,28 @@ public class SoundEffect : IDisposable
     public unsafe Mix_Chunk* Chunk { get; init; }
     private bool _Disposed;
 
-    public SoundEffect(string filePath)
+    public unsafe SoundEffect(string filePath)
     {
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"File not found", filePath);
         }
 
-        unsafe
+        Mix_Chunk* chunk = SDL3_mixer.Mix_LoadWAV(filePath);
+        if (chunk is null)
         {
-            Mix_Chunk* chunk = SDL3_mixer.Mix_LoadWAV(filePath);
-            if (chunk is null)
-            {
-                throw new Exception("Failed to load sound effect");
-            }
-            Chunk = chunk;
+            throw new Exception("Failed to load sound effect");
         }
+
+        Chunk = chunk;
     }
 
-    public void Play(int numberOfLoops = 0)
+    public unsafe void Play(int numberOfLoops = 0)
     {
-        unsafe
+        int channel = SDL3_mixer.Mix_PlayChannel(-1, Chunk, numberOfLoops);
+        if (channel == -1)
         {
-            int channel = SDL3_mixer.Mix_PlayChannel(-1, Chunk, numberOfLoops);
-            if (channel == -1)
-            {
-                Console.WriteLine($"Failed to play sound: {SDL3.SDL_GetError()}");
-            }
+            Console.WriteLine($"Failed to play sound: {SDL3.SDL_GetError()}");
         }
     }
 
@@ -67,6 +62,12 @@ public class SoundEffect : IDisposable
                 SDL3_mixer.Mix_FreeChunk(Chunk);
             }
         }
+        
         _Disposed = true;
+    }
+    
+    ~SoundEffect()
+    {
+        Dispose(false);
     }
 }

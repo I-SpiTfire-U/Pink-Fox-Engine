@@ -9,6 +9,7 @@ public interface IInputManager
     IGamepadCollection Gamepads { get; }
 
     void ProcessEvent(SDL_Event sdlEvent);
-    
+
     void Clear();
+    void Dispose();
 }

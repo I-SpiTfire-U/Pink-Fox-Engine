@@ -11,7 +11,7 @@ public class AudioManager : IAudioManager
 
     private bool _Initialized = false;
     private MusicTrack? _CurrentMusic = null;
-    
+
     private readonly ConcurrentDictionary<string, SoundEffect> _SoundEffects = new();
     private readonly ConcurrentDictionary<string, MusicTrack> _MusicTracks = new();
 
@@ -32,6 +32,10 @@ public class AudioManager : IAudioManager
         {
             Console.WriteLine("Warning: OGG format not supported.");
         }
+        if ((result & SDL3_mixer.MIX_INIT_WAVPACK) == 0)
+        {
+            Console.WriteLine("Warning: WAV format not supported.");
+        }
         Console.WriteLine($"Mixer Init Result: {result}");
 
         unsafe
@@ -46,34 +50,13 @@ public class AudioManager : IAudioManager
             if (!SDL3_mixer.Mix_OpenAudio(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audioSpec))
             {
                 Console.WriteLine($"Mix_OpenAudio failed: {SDL3.SDL_GetError()}");
+                return;
             }
 
             _ = SDL3_mixer.Mix_AllocateChannels(32);
         }
 
         _Initialized = true;
-    }
-
-    public void Shutdown()
-    {
-        TryEndMusic();
-
-        foreach (var sfx in _SoundEffects.Values)
-        {
-            sfx.Dispose();
-        }
-        _SoundEffects.Clear();
-
-        foreach (var track in _MusicTracks.Values)
-        {
-            track.Dispose();
-        }
-        _MusicTracks.Clear();
-
-        SDL3_mixer.Mix_CloseAudio();
-        SDL3_mixer.Mix_Quit();
-
-        _Initialized = false;
     }
 
     public void LoadSound(string id, string path)
@@ -180,7 +163,7 @@ public class AudioManager : IAudioManager
         {
             return 0f;
         }
-        
+
         int sdlVolume = SDL3_mixer.Mix_VolumeMusic(-1);
         return sdlVolume / 128f;
     }
@@ -192,5 +175,32 @@ public class AudioManager : IAudioManager
             SDL3_mixer.Mix_HaltMusic();
             _CurrentMusic = null;
         }
+    }
+    
+    public void Shutdown()
+    {
+        if (!_Initialized)
+        {
+            return;
+        }
+
+        TryEndMusic();
+
+        foreach (var sfx in _SoundEffects.Values)
+        {
+            sfx.Dispose();
+        }
+        _SoundEffects.Clear();
+
+        foreach (var track in _MusicTracks.Values)
+        {
+            track.Dispose();
+        }
+        _MusicTracks.Clear();
+        
+        SDL3_mixer.Mix_CloseAudio();
+        SDL3_mixer.Mix_Quit();
+
+        _Initialized = false;
     }
 }

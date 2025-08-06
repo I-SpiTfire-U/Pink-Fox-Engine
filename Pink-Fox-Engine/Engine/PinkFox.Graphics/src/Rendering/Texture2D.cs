@@ -200,4 +200,103 @@ public class Texture2D : IDisposable
             Marshal.FreeHGlobal(pixels);
         }
     }
+
+    public static unsafe Texture2D CreateSquareOutlineTexture(SDL_Renderer* renderer, int width, int height, int outlineThickness, SDL_Color outlineColor)
+    {
+        int bpp = 4;
+        int pitch = width * bpp;
+        nint pixels = Marshal.AllocHGlobal(height * pitch);
+
+        try
+        {
+            byte* ptr = (byte*)pixels.ToPointer();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int offset = (y * pitch) + (x * bpp);
+
+                    bool isOutline = x < outlineThickness || x >= width - outlineThickness ||
+                                     y < outlineThickness || y >= height - outlineThickness;
+
+                    if (isOutline)
+                    {
+                        ptr[offset + 0] = outlineColor.r;
+                        ptr[offset + 1] = outlineColor.g;
+                        ptr[offset + 2] = outlineColor.b;
+                        ptr[offset + 3] = outlineColor.a;
+                    }
+                    else
+                    {
+                        ptr[offset + 0] = 0;
+                        ptr[offset + 1] = 0;
+                        ptr[offset + 2] = 0;
+                        ptr[offset + 3] = 0;
+                    }
+                }
+            }
+
+            return FromPixels(renderer, pixels, width, height, SDL_PixelFormat.SDL_PIXELFORMAT_RGBA8888);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(pixels);
+        }
+    }
+
+    public static unsafe Texture2D CreateCircleOutlineTexture(SDL_Renderer* renderer, int width, int height, int outlineThickness, SDL_Color outlineColor)
+    {
+        int bpp = 4;
+        int pitch = width * bpp;
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float radius = Math.Min(width, height) / 2f;
+
+        float outerRadius = radius;
+        float innerRadius = radius - outlineThickness;
+
+        nint pixels = Marshal.AllocHGlobal(height * pitch);
+
+        try
+        {
+            byte* ptr = (byte*)pixels.ToPointer();
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float dx = x - centerX;
+                    float dy = y - centerY;
+                    float distSquared = dx * dx + dy * dy;
+
+                    float outerR2 = outerRadius * outerRadius;
+                    float innerR2 = innerRadius * innerRadius;
+
+                    int offset = (y * pitch) + (x * bpp);
+
+                    if (distSquared <= outerR2 && distSquared >= innerR2)
+                    {
+                        ptr[offset + 0] = outlineColor.r;
+                        ptr[offset + 1] = outlineColor.g;
+                        ptr[offset + 2] = outlineColor.b;
+                        ptr[offset + 3] = outlineColor.a;
+                    }
+                    else
+                    {
+                        ptr[offset + 0] = 0;
+                        ptr[offset + 1] = 0;
+                        ptr[offset + 2] = 0;
+                        ptr[offset + 3] = 0;
+                    }
+                }
+            }
+
+            return FromPixels(renderer, pixels, width, height, SDL_PixelFormat.SDL_PIXELFORMAT_RGBA8888);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(pixels);
+        }
+    }
 }

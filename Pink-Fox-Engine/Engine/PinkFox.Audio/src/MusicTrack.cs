@@ -7,22 +7,20 @@ public class MusicTrack : IDisposable
     public unsafe Mix_Music* Track { get; init; }
     private bool _Disposed;
 
-    public MusicTrack(string filePath)
+    public unsafe MusicTrack(string filePath)
     {
         if (!File.Exists(filePath))
         {
             throw new FileNotFoundException($"File not found", filePath);
         }
 
-        unsafe
+        Mix_Music* track = SDL3_mixer.Mix_LoadMUS(filePath);
+        if (track is null)
         {
-            Mix_Music* track = SDL3_mixer.Mix_LoadMUS(filePath);
-            if (track is null)
-            {
-                throw new Exception("Failed to load sound effect");
-            }
-            Track = track;
+            throw new Exception($"Failed to load music track: {SDL3.SDL_GetError()}");
         }
+
+        Track = track;
     }
 
     public void Dispose()
@@ -45,6 +43,12 @@ public class MusicTrack : IDisposable
                 SDL3_mixer.Mix_FreeMusic(Track);
             }
         }
+
         _Disposed = true;
+    }
+
+    ~MusicTrack()
+    {
+        Dispose(false);
     }
 }

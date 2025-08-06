@@ -16,13 +16,11 @@ public class Keyboard : IKeyboard
         {
             _KeysDown.Add(sdlEvent.key.key);
             _KeysHeld.Add(sdlEvent.key.key);
-            Console.WriteLine($"Key down: {sdlEvent.key.key}");
         }
         else if (eventType == SDL_EventType.SDL_EVENT_KEY_UP)
         {
             _KeysUp.Add(sdlEvent.key.key);
             _KeysHeld.Remove(sdlEvent.key.key);
-            Console.WriteLine($"Key up: {sdlEvent.key.key}");
         }
     }
 

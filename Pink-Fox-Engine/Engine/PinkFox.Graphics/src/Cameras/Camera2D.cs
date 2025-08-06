@@ -82,7 +82,6 @@ public class Camera2D : ICamera2D
 
     public bool SpriteIsInView(ISprite2D sprite)
     {
-        RectCollider spriteCollider = new(sprite.Position, sprite.Scale, sprite.Center);
-        return GetViewBounds().IsCollidingWith(spriteCollider);
+        return GetViewBounds().IsCollidingWith(sprite.Collider);
     }
 }
