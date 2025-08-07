@@ -7,7 +7,6 @@ namespace PinkFox.Core.Components;
 public interface IMouse
 {
     Vector2 Position { get; set; }
-    ICollider Collider { get; }
 
     bool IsButtonDown(SDL_MouseButtonFlags button);
     bool IsButtonUp(SDL_MouseButtonFlags button);

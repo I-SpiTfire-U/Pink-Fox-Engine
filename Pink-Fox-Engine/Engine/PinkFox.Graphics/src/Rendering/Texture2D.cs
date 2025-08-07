@@ -142,10 +142,10 @@ public class Texture2D : IDisposable
                     {
                         int offset = (y * pitch) + (x * bpp);
 
-                        ptr[offset + 0] = color.r;
-                        ptr[offset + 1] = color.g;
-                        ptr[offset + 2] = color.b;
-                        ptr[offset + 3] = color.a;
+                        ptr[offset + 0] = color.a;
+                        ptr[offset + 1] = color.b;
+                        ptr[offset + 2] = color.g;
+                        ptr[offset + 3] = color.r;
                     }
                 }
             }
@@ -185,10 +185,10 @@ public class Texture2D : IDisposable
 
                         int offset = (y * pitch) + (x * bpp);
 
-                        ptr[offset + 0] = insideCircle ? color.r : (byte)0;
-                        ptr[offset + 1] = insideCircle ? color.g : (byte)0;
-                        ptr[offset + 2] = insideCircle ? color.b : (byte)0;
-                        ptr[offset + 3] = insideCircle ? color.a : (byte)0;
+                        ptr[offset + 0] = insideCircle ? color.a : (byte)0;
+                        ptr[offset + 1] = insideCircle ? color.b : (byte)0;
+                        ptr[offset + 2] = insideCircle ? color.g : (byte)0;
+                        ptr[offset + 3] = insideCircle ? color.r : (byte)0;
                     }
                 }
             }
@@ -222,10 +222,10 @@ public class Texture2D : IDisposable
 
                     if (isOutline)
                     {
-                        ptr[offset + 0] = outlineColor.r;
-                        ptr[offset + 1] = outlineColor.g;
-                        ptr[offset + 2] = outlineColor.b;
-                        ptr[offset + 3] = outlineColor.a;
+                        ptr[offset + 0] = outlineColor.a;
+                        ptr[offset + 1] = outlineColor.b;
+                        ptr[offset + 2] = outlineColor.g;
+                        ptr[offset + 3] = outlineColor.r;
                     }
                     else
                     {
@@ -277,10 +277,10 @@ public class Texture2D : IDisposable
 
                     if (distSquared <= outerR2 && distSquared >= innerR2)
                     {
-                        ptr[offset + 0] = outlineColor.r;
-                        ptr[offset + 1] = outlineColor.g;
-                        ptr[offset + 2] = outlineColor.b;
-                        ptr[offset + 3] = outlineColor.a;
+                        ptr[offset + 0] = outlineColor.a;
+                        ptr[offset + 1] = outlineColor.b;
+                        ptr[offset + 2] = outlineColor.g;
+                        ptr[offset + 3] = outlineColor.r;
                     }
                     else
                     {

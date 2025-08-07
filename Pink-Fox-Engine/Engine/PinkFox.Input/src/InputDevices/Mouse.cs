@@ -35,8 +35,6 @@ public class Mouse : IMouse
         }
     }
 
-    public ICollider Collider => new RectCollider(Position, new(1, 1));
-
     public bool IsButtonDown(SDL_MouseButtonFlags button) => _ButtonsDown.Contains(button);
     public bool IsButtonUp(SDL_MouseButtonFlags button) => _ButtonsUp.Contains(button);
     public bool IsButtonHeld(SDL_MouseButtonFlags button) => _ButtonsHeld.Contains(button);

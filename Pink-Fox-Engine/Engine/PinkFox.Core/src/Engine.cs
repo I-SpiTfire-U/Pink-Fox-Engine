@@ -1,3 +1,4 @@
+using System.Numerics;
 using PinkFox.Core.Components;
 using PinkFox.Core.Scenes;
 using SDL;
@@ -35,8 +36,6 @@ public sealed class Engine : IDisposable
     public IInputManager? OptionalInputManager => _InputManager;
     public IAudioManager? OptionalAudioManager => _AudioManager;
 
-    public Action? OnStart { get; set; }
-
     public void SetTargetFPS(int fps) => _TargetFPS = fps;
     public void SetFixedUPS(int ups) => _FixedUPS = ups;
     public void Stop() => _Running = false;
@@ -46,11 +45,31 @@ public sealed class Engine : IDisposable
     public void SetWindowFlags(SDL_WindowFlags windowFlags) => _WindowFlags = windowFlags;
     private SDL_WindowFlags _WindowFlags;
 
-    public void Initialize(string title, string iconPath, int width, int height)
+    public unsafe void SetWindowSize(Vector2 size)
     {
-        _WindowTitle = title;
-        WindowWidth = width;
-        WindowHeight = height;
+        // SDL_WindowFlags flags = SDL3.SDL_GetWindowFlags(_Window);
+        // bool isResizable = (flags & SDL_WindowFlags.SDL_WINDOW_RESIZABLE) != 0;
+        // SDL3.SDL_SetWindowResizable(_Window, isResizable);
+        SDL3.SDL_SetWindowSize(_Window, (int)size.X, (int)size.Y);
+    }
+
+    public unsafe void ToggleFullscreen()
+    {
+        SDL_WindowFlags flags = SDL3.SDL_GetWindowFlags(_Window);
+        bool isFullscreen = (flags & SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0;
+
+        bool result = SDL3.SDL_SetWindowFullscreen(_Window, !isFullscreen);
+        if (!result)
+        {
+            Console.WriteLine($"Failed to set window mode: {SDL3.SDL_GetError()}");
+        }
+    }
+
+    public void Initialize(string windowTitle, string iconPath, int windowWidth, int windowHeight)
+    {
+        _WindowTitle = windowTitle;
+        WindowWidth = windowWidth;
+        WindowHeight = windowHeight;
         _Accumulator = 0;
         _LastTicks = SDL3.SDL_GetTicks();
 
@@ -135,7 +154,6 @@ public sealed class Engine : IDisposable
 
             if (_FirstFrame)
             {
-                OnStart?.Invoke();
                 _FirstFrame = false;
                 continue;
             }
@@ -234,8 +252,8 @@ public sealed class Engine : IDisposable
                     SDL3.SDL_DestroyWindow(_Window);
                 }
             }
-            
-            SceneManager.UnloadScene();
+
+            SceneManager.ClearAllScenes();
             _AudioManager?.Shutdown();
             _InputManager?.Dispose();
             SDL3_ttf.TTF_Quit();

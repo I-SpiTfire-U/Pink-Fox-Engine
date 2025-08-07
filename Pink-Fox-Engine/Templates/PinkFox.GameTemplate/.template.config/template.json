@@ -9,7 +9,7 @@
     "description": "A standard game project using the PinkFox game engine with SDL3.",
     "name": "PinkFox Game",
     "identity": "PinkFox.GameTemplate",
-    "shortName": "pinkfoxgame",
+    "shortName": "pinkfox-game",
     "tags": {
         "language": "C#",
         "type": "project"

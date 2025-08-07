@@ -7,13 +7,72 @@ public class GamepadCollection : IGamepadCollection, IDisposable
 {
     public int Count => _Gamepads.Count;
     public bool AreGamepadsConnected => _Gamepads.Count > 0;
+    private readonly List<SDL_JoystickID> _GamepadOrder = [];
     private readonly Dictionary<SDL_JoystickID, IGamepad> _Gamepads = [];
 
     private bool _Disposed;
 
+    public bool IsButtonDown(int gamepadIndex, SDL_GamepadButton button)
+    {
+        IGamepad? gamepad = AtIndex(gamepadIndex);
+        if (gamepad is null)
+        {
+            //Console.WriteLine($"[Warning] Gamepad index '{gamepadIndex}' is out of range (Count: {Count}).");
+            return false;
+        }
+        return gamepad.IsButtonDown(button);
+    }
+
+    public bool IsButtonUp(int gamepadIndex, SDL_GamepadButton button)
+    {
+        IGamepad? gamepad = AtIndex(gamepadIndex);
+        if (gamepad is null)
+        {
+            //Console.WriteLine($"[Warning] Gamepad index '{gamepadIndex}' is out of range (Count: {Count}).");
+            return false;
+        }
+        return gamepad.IsButtonDown(button);
+    }
+
+    public bool IsButtonHeld(int gamepadIndex, SDL_GamepadButton button)
+    {
+        IGamepad? gamepad = AtIndex(gamepadIndex);
+        if (gamepad is null)
+        {
+            //Console.WriteLine($"[Warning] Gamepad index '{gamepadIndex}' is out of range (Count: {Count}).");
+            return false;
+        }
+        return gamepad.IsButtonDown(button);
+    }
+
+    public short GetAxis(int gamepadIndex, SDL_GamepadAxis axis)
+    {
+        IGamepad? controller = AtIndex(gamepadIndex);
+        if (controller is null)
+        {
+            //Console.WriteLine($"[Warning] Gamepad index '{gamepadIndex}' is out of range (Count: {Count}).");
+            return 0;
+        }
+        return controller.GetAxis(axis);
+    }
+
+    public float GetAxisFiltered(int gamepadIndex, SDL_GamepadAxis axis)
+    {
+        IGamepad? controller = AtIndex(gamepadIndex);
+        if (controller is null)
+        {
+            //Console.WriteLine($"[Warning] Gamepad index '{gamepadIndex}' is out of range (Count: {Count}).");
+            return 0;
+        }
+        return controller.GetAxisFiltered(axis);
+    }
+
     public void AddGamepad(SDL_JoystickID instanceId, IGamepad gamepad)
     {
-        _Gamepads.TryAdd(instanceId, gamepad);
+        if (_Gamepads.TryAdd(instanceId, gamepad))
+        {
+            _GamepadOrder.Add(instanceId);
+        }
     }
 
     public void RemoveGamepad(SDL_JoystickID instanceId)
@@ -23,14 +82,12 @@ public class GamepadCollection : IGamepadCollection, IDisposable
             return;
         }
 
-        _Gamepads[instanceId].Dispose();
-        _Gamepads.Remove(instanceId);
-        Console.WriteLine($"Gamepad removed: Instance ID {instanceId}");
-    }
-
-    public IGamepad? AtIndex(int index)
-    {
-        return index >= 0 && index < _Gamepads.Count ? _Gamepads.ElementAt(index).Value : null;
+        if (_Gamepads.Remove(instanceId, out var gamepad))
+        {
+            gamepad.Dispose();
+            _GamepadOrder.Remove(instanceId);
+            Console.WriteLine($"Gamepad removed: Instance ID {instanceId}");
+        }
     }
 
     public IGamepad? GetFirstOrDefault()
@@ -55,6 +112,16 @@ public class GamepadCollection : IGamepadCollection, IDisposable
             return;
         }
         _Gamepads[instanceId].ProcessEvent(sdlEvent);
+    }
+
+    private IGamepad? AtIndex(int index)
+    {
+        if (index < 0 || index >= _Gamepads.Count)
+        {
+            return null;
+        }
+        SDL_JoystickID instanceId = _GamepadOrder[index];
+        return _Gamepads[instanceId];
     }
 
     public void Clear()

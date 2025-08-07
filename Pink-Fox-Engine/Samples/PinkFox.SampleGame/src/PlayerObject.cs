@@ -31,15 +31,15 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
         _PreviousPosition = Position;
         _MoveDirection = 0f;
 
-        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_SPACE) || (inputManager.Gamepads.AtIndex(0)?.IsButtonDown(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH) ?? false))
+        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_SPACE) || inputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH))
         {
             _JumpRequested = true;
         }
-        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_A) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) < 0)
+        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_A) || inputManager.Gamepads.GetAxisFiltered(0, SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) < 0f)
         {
             _MoveDirection = -1f;
         }
-        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_D) || inputManager.Gamepads.AtIndex(0)?.GetAxisFiltered(SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) > 0)
+        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_D) || inputManager.Gamepads.GetAxisFiltered(0, SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX) > 0f)
         {
             _MoveDirection = 1f;
         }
@@ -166,7 +166,7 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
     private void MoveHorizontally(float amount, List<ISprite2D> spritePool)
     {
         float x = Position.X + amount;
-        RectCollider futureCollider = new(new(x, Position.Y), Scale, Center);
+        RectCollider futureCollider = new(new(x, Position.Y), Scale);
 
         foreach (ISprite2D sprite in spritePool)
         {
@@ -195,7 +195,7 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
     private void MoveVertically(float amount, List<ISprite2D> spritePool)
     {
         float y = Position.Y + amount;
-        RectCollider futureCollider = new(new(Position.X, y), Scale, Center);
+        RectCollider futureCollider = new(new(Position.X, y), Scale);
         bool isGrounded = false;
 
         foreach (ISprite2D sprite in spritePool)
@@ -226,7 +226,7 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
 
     private void CorrectSmallOverlaps(List<ISprite2D> spritePool)
     {
-        RectCollider currentCollider = new(Position, Scale, Center);
+        RectCollider currentCollider = new(Position, Scale);
         const float epsilon = 0.1f;
 
         foreach (var sprite in spritePool)
@@ -262,7 +262,7 @@ public class PlayerObject : AnimatedSprite2D, ISprite2D
                     break;
             }
 
-            currentCollider = new(Position, Scale, Center);
+            currentCollider = new(Position, Scale);
         }
 
         Origin = Center;

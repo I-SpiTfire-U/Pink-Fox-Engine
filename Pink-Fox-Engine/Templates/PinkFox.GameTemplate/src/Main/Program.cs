@@ -20,16 +20,14 @@ public class Program
 
         // Enable for audio when using PinkFox.Audio
         // engine.SetAudioManager(new AudioManager());
-        
+
         // engine.SetWindowFlags();
 
-        engine.OnStart = () =>
-        {
-            SceneManager.SetExitAction(engine.Stop);
-            SceneManager.LoadScene(new SampleScene(engine));
-        };
-
         engine.Initialize("My Game", @"Assets\Icon\Icon.png", DefaultWindowWidth, DefaultWindowHeight);
+
+        SceneManager.RegisterScene("Main Scene", new SampleScene(engine));
+        SceneManager.PushScene("Main Scene");
+
         engine.Run();
     }
 }

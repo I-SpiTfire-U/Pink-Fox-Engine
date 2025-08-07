@@ -19,15 +19,15 @@ public class Program
         
         engine.SetInputManager(new InputManager());
         engine.SetAudioManager(new AudioManager());
+
         // engine.SetWindowFlags();
 
-        engine.OnStart = () =>
-        {
-            SceneManager.SetExitAction(engine.Stop);
-            SceneManager.LoadScene(new SampleScene(engine));
-        };
-
         engine.Initialize("Sample Game", @"Assets\Icon\Icon.png", DefaultWindowWidth, DefaultWindowHeight);
+
+        SceneManager.RegisterScene("Menu Scene", new MenuScene(engine));
+        SceneManager.RegisterScene("Game Scene", new GameScene(engine));
+        SceneManager.PushScene("Menu Scene");
+
         engine.Run();
     }
 }

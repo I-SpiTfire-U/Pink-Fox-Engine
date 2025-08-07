@@ -4,60 +4,118 @@ namespace PinkFox.Core.Scenes;
 
 public static class SceneManager
 {
-    private static IScene? _ActiveScene;
-    private static Action? _ExitAction;
+    private static readonly Dictionary<string, IScene> _Scenes = [];
+    private static readonly Stack<IScene> _SceneStack = new();
 
-    public static void SetExitAction(Action action)
+    public static void RegisterScene(string name, IScene scene)
     {
-        if (_ActiveScene is not null && _ExitAction is not null)
+        if (!_Scenes.ContainsKey(name))
         {
-            _ActiveScene.OnRequestExit -= _ExitAction;
+            _Scenes[name] = scene;
+        }
+    }
+
+    public static void UnregisterScene(string name)
+    {
+        if (_Scenes.TryGetValue(name, out var scene))
+        {
+            scene.Dispose();
+            _Scenes.Remove(name);
+        }
+    }
+
+    public static void SwitchToScene(string name, bool disposeCurrent = true)
+    {
+        if (!_Scenes.TryGetValue(name, out IScene? scene))
+        {
+            throw new ArgumentException($"Scene '{name}' not registered.");
         }
 
-        _ExitAction = action;
-
-        if (_ActiveScene is not null)
+        if (_SceneStack.Count > 0)
         {
-            _ActiveScene.OnRequestExit += _ExitAction;
+            IScene current = _SceneStack.Pop();
+            if (disposeCurrent)
+            {
+                current.Dispose();
+            }
+        }
+
+        _SceneStack.Push(scene);
+        
+        if (!scene.HasBeenLoaded)
+        {
+            scene.LoadContent();
+        }
+    }
+
+    public static void PushScene(string name)
+    {
+        if (!_Scenes.TryGetValue(name, out IScene? scene))
+        {
+            Console.WriteLine($"[SceneManager] Scene '{name}' not found.");
+            return;
+        }
+        
+        _SceneStack.Push(scene);
+
+        if (!scene.HasBeenLoaded)
+        {
+            scene.LoadContent();
+        }
+    }
+
+    public static void PopScene(bool dispose = true)
+    {
+        if (_SceneStack.Count == 0)
+        {
+            return;
+        }
+
+        IScene scene = _SceneStack.Pop();
+
+        if (dispose)
+        {
+            scene.Dispose();
         }
     }
 
     public static IScene? GetActiveScene()
     {
-        return _ActiveScene;
-    }
-
-    public static void LoadScene(IScene scene)
-    {
-        _ActiveScene?.Dispose();
-        
-        _ActiveScene = scene;
-        _ActiveScene.LoadContent();
-
-        if (_ExitAction is not null)
-        {
-            _ActiveScene.OnRequestExit += _ExitAction;
-        }
-    }
-
-    public static void UnloadScene()
-    {
-        _ActiveScene?.Dispose();
-        _ActiveScene = null;
+        return _SceneStack.TryPeek(out var scene) ? scene : null;
     }
 
     public static void Update(float deltaTime)
     {
-        _ActiveScene?.Update(deltaTime);
+        if (_SceneStack.TryPeek(out IScene? scene))
+        {
+            scene.Update(deltaTime);
+        }
     }
 
     public static void FixedUpdate(float fixedUpdateInterval)
     {
-        _ActiveScene?.FixedUpdate(fixedUpdateInterval);
+        if (_SceneStack.TryPeek(out IScene? scene))
+        {
+            scene.FixedUpdate(fixedUpdateInterval);
+        }
     }
 
     public static unsafe void Draw(SDL_Renderer* renderer, float alpha)
     {
-        _ActiveScene?.Draw(renderer, alpha);
+        if (_SceneStack.TryPeek(out IScene? scene))
+        {
+            scene.Draw(renderer, alpha);
+        }
+    }
+
+    public static void ClearAllScenes()
+    {
+        while (_SceneStack.Count > 0)
+        {
+            IScene scene = _SceneStack.Pop();
+            scene.Dispose();
+        }
+
+        _Scenes.Clear();
     }
 }

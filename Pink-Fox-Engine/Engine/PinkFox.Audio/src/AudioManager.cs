@@ -168,6 +168,14 @@ public class AudioManager : IAudioManager
         return sdlVolume / 128f;
     }
 
+    public void ClearCurrentTrackIfEnded()
+    {
+        if (_CurrentMusic is not null && !IsMusicPlaying)
+        {
+            _CurrentMusic = null;
+        }
+    }
+
     private void TryEndMusic()
     {
         if (_CurrentMusic is not null)

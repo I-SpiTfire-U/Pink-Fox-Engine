@@ -25,7 +25,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
 
     public Vector2 TextureSize => new(CurrentAnimation.GetCurrentFrameRect().w, CurrentAnimation.GetCurrentFrameRect().h);
     public Vector2 Center => Position + Scale / 2f;
-    public RectCollider Collider => new(Position, Scale, Center);
+    public RectCollider Collider => new(Position, Scale);
 
     public AnimatedSprite2D(string name, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0.0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, bool isVisible = true)
     {

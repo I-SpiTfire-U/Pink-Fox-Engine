@@ -5,9 +5,9 @@ namespace PinkFox.Core.Scenes;
 public interface IScene
 {
     /// <summary>
-    /// Raised when the scene requests the engine to exit (e.g., game over, user quits).
+    /// A bool indicating whether the scene has been loaded previously already.
     /// </summary>
-    event Action? OnRequestExit;
+    bool HasBeenLoaded { get; }
 
     /// <summary>
     /// Load game assets such as textures, audio, and other content here.

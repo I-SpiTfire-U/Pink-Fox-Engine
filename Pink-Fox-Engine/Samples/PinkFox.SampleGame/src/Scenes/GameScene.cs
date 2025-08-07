@@ -5,17 +5,35 @@ using PinkFox.Graphics.Cameras;
 using System.Numerics;
 using PinkFox.Core;
 using PinkFox.UI.Text;
+using PinkFox.Core.Collisions;
+using PinkFox.Input.InputDevices;
+using PinkFox.Core.Components;
+using PinkFox.Input;
 
 namespace PinkFox.SampleGame.Scenes;
 
-public class SampleScene : IScene, IDisposable
+public class GameScene : IScene, IDisposable
 {
+    public bool HasBeenLoaded { get; set; }
     protected readonly Engine Engine;
     protected float CurrentFPS = 0f;
     protected float FPSTimer = 0f;
     protected int FrameCount = 0;
 
-    public event Action? OnRequestExit;
+    protected int CurrentWindowSize = 6;
+    protected readonly Vector2[] WindowSizes =
+    [
+        new Vector2(640,  360 ),
+        new Vector2(800,  600 ),
+        new Vector2(1024, 576 ),
+        new Vector2(1024, 768 ),
+        new Vector2(1280, 720 ),
+        new Vector2(1366, 768 ),
+        new Vector2(1600, 900 ),
+        new Vector2(1920, 1080),
+        new Vector2(2560, 1440),
+        new Vector2(3840, 2160)
+    ];
 
     protected readonly Camera2D Camera;
 
@@ -28,7 +46,7 @@ public class SampleScene : IScene, IDisposable
 
     private bool _Disposed;
 
-    public unsafe SampleScene(Engine engine)
+    public unsafe GameScene(Engine engine)
     {
         Engine = engine;
 
@@ -109,36 +127,46 @@ public class SampleScene : IScene, IDisposable
     public void Update(float deltaTime)
     {
         // TODO: Update game logic that runs every frame, such as input handling, animations, or timers below:
+        IInputManager inputManager = Engine.InputManager;
 
         UpdateFPS(deltaTime);
+        Camera.SetPosition(PlayerObject.Origin - Camera.ViewOffset);
+        PlayerObject.Update(deltaTime, inputManager);
 
         if (!Engine.AudioManager.IsMusicPlaying)
         {
-            Engine.AudioManager.PlayMusic("Louvre Museum Invasion");
+            Engine.AudioManager.PlayMusic("Louvre Museum Invasion", -1);
         }
 
-        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_UP) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER) ?? false))
+        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_F))
+        {
+            Engine.ToggleFullscreen();
+        }
+
+        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_DOWN) && CurrentWindowSize > 0)
+        {
+            CurrentWindowSize--;
+            Engine.SetWindowSize(WindowSizes[CurrentWindowSize]);
+        }
+        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_UP) && CurrentWindowSize < WindowSizes.Length - 1)
+        {
+            CurrentWindowSize++;
+            Engine.SetWindowSize(WindowSizes[CurrentWindowSize]);
+        }
+
+        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_PLUS) || inputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER))
         {
             Camera.UpdateZoom(1f * deltaTime);
         }
-        if (Engine.InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_DOWN) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER) ?? false))
+        if (inputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_MINUS) || inputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))
         {
             Camera.UpdateZoom(-1f * deltaTime);
         }
 
-        Camera.SetPosition(PlayerObject.Origin - Camera.ViewOffset);
-
-        if (Engine.InputManager.Mouse.Collider.IsCollidingWith(PlayerObject.Collider) && Engine.InputManager.Mouse.IsButtonDown(SDL_MouseButtonFlags.SDL_BUTTON_LMASK))
+        if (inputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_ESCAPE) || inputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START))
         {
-            OnRequestExit?.Invoke();
+            Engine.Stop();
         }
-
-        if (Engine.InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_ESCAPE) || (Engine.InputManager.Gamepads.AtIndex(0)?.IsButtonHeld(SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START) ?? false))
-        {
-            OnRequestExit?.Invoke();
-        }
-
-        PlayerObject.Update(deltaTime, Engine.InputManager);
     }
 
     public void FixedUpdate(float fixedUpdateInterval)

@@ -60,7 +60,6 @@ public class Gamepad : IGamepad, IDisposable
     public bool IsButtonUp(SDL_GamepadButton button) => _ButtonsUp.Contains(button);
     public bool IsButtonHeld(SDL_GamepadButton button) => _ButtonsHeld.Contains(button);
     public short GetAxis(SDL_GamepadAxis axis) => _AxisValues.TryGetValue(axis, out short value) ? value : (short)0;
-
     public float GetAxisFiltered(SDL_GamepadAxis axis)
     {
         if (!_AxisValues.TryGetValue(axis, out short rawValue))
