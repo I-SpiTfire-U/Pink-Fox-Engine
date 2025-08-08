@@ -33,7 +33,7 @@ public interface IScene
     /// </summary>
     /// <param name="renderer">The SDL renderer used for drawing.</param>
     /// <param name="alpha">Interpolation factor for smooth rendering between fixed updates (useful for physics).</param>
-    unsafe void Draw(SDL_Renderer* renderer, float alpha);
+    unsafe void Draw(SDL_Renderer* renderer);
 
     /// <summary>
     /// Handle logic that should respond to window size changes (e.g. updating camera or UI layout).

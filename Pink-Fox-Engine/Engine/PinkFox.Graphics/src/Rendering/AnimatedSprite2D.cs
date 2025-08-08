@@ -19,6 +19,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
     public Vector2 Scale { get; set; }
     public double Rotation { get; set; }
     public SDL_FlipMode FlipMode { get; set; }
+    public int Layer { get; set; }
     public bool IsVisible { get; set; }
 
     private bool _Disposed = false;
@@ -27,7 +28,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
     public Vector2 Center => Position + Scale / 2f;
     public RectCollider Collider => new(Position, Scale);
 
-    public AnimatedSprite2D(string name, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0.0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, bool isVisible = true)
+    public AnimatedSprite2D(string name, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0.0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, int layer = 0, bool isVisible = true)
     {
         Name = name;
         Texture = texture;
@@ -38,6 +39,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
         Origin = origin ?? Center;
         Rotation = rotation;
         FlipMode = flipMode;
+        Layer = layer;
         IsVisible = isVisible;
     }
 

@@ -15,6 +15,7 @@ public interface ISprite2D
     Vector2 Scale { get; set; }
     double Rotation { get; set; }
     SDL_FlipMode FlipMode { get; set; }
+    public int Layer { get; set; }
     bool IsVisible { get; set; }
 
     Vector2 TextureSize { get; }

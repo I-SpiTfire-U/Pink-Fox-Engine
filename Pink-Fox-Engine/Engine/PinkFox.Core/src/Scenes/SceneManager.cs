@@ -100,11 +100,11 @@ public static class SceneManager
         }
     }
 
-    public static unsafe void Draw(SDL_Renderer* renderer, float alpha)
+    public static unsafe void Draw(SDL_Renderer* renderer)
     {
         if (_SceneStack.TryPeek(out IScene? scene))
         {
-            scene.Draw(renderer, alpha);
+            scene.Draw(renderer);
         }
     }
 

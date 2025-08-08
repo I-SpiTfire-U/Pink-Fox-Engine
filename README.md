@@ -60,18 +60,14 @@ public class Program
 {
     public static void Main()
     {
-        int defaultWindowWidth = 800;
-        int defaultWindowHeight = 600;
-
         using Engine engine = new();
-        
-        // Uncomment to setup managers 
-        // engine.SetInputManager(new InputManager());
-        // engine.SetAudioManager(new AudioManager());
+        // engine.SetInputManager(new PinkFox.Input.InputManager());
+        // engine.SetAudioManager(new PinkFox.Audio.AudioManager());
 
-        engine.Initialize("Basic Game", @"Assets\Icon\Icon.png", defaultWindowWidth, defaultWindowHeight);
+        engine.Initialize("My Game", @"Assets\Icon\Icon.png", 800, 600);
+        engine.SetRenderDrawColor(100, 149, 237);
 
-        SceneManager.RegisterScene("Main Scene", new MainScene(engine));
+        SceneManager.RegisterScene("Main Scene", new Scene(engine));
         SceneManager.PushScene("Main Scene");
 
         engine.Run();
@@ -100,7 +96,7 @@ public class Scene : IScene, IDisposable
 
     public void FixedUpdate(float fixedUpdateInterval) { }
 
-    public unsafe void Draw(SDL_Renderer* renderer, float alpha) { }
+    public unsafe void Draw(SDL_Renderer* renderer) { }
 
     public void OnWindowResize(int windowWidth, int windowHeight) { }
 

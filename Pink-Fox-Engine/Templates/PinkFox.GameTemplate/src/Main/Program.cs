@@ -8,24 +8,14 @@ public class Program
 {
     public static void Main()
     {
-        const int DefaultWindowWidth = 800;
-        const int DefaultWindowHeight = 600;
-
         using Engine engine = new();
-        engine.EnableFPSLimit(true);
-        engine.SetTargetFPS(60);
+        // engine.SetInputManager(new PinkFox.Input.InputManager());
+        // engine.SetAudioManager(new PinkFox.Audio.AudioManager());
 
-        // Enable for user input when using PinkFox.Input
-        // engine.SetInputManager(new InputManager());
+        engine.Initialize("My Game", @"Assets\Icon\Icon.png", 800, 600);
+        engine.SetRenderDrawColor(100, 149, 237);
 
-        // Enable for audio when using PinkFox.Audio
-        // engine.SetAudioManager(new AudioManager());
-
-        // engine.SetWindowFlags();
-
-        engine.Initialize("My Game", @"Assets\Icon\Icon.png", DefaultWindowWidth, DefaultWindowHeight);
-
-        SceneManager.RegisterScene("Main Scene", new SampleScene(engine));
+        SceneManager.RegisterScene("Main Scene", new Scene(engine));
         SceneManager.PushScene("Main Scene");
 
         engine.Run();

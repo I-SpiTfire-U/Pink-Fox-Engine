@@ -15,7 +15,6 @@ public sealed class Engine : IDisposable
     public void EnableFPSLimit(bool enable) => _EnableFPSLimit = enable;
 
     private bool _Running = true;
-    private float _Accumulator;
     private ulong _LastTicks;
     private bool _Disposed;
     private bool _FirstFrame = true;
@@ -24,6 +23,7 @@ public sealed class Engine : IDisposable
     private unsafe SDL_Renderer* _Renderer;
     public int WindowWidth { get; private set; }
     public int WindowHeight { get; private set; }
+    public Vector2 WindowCenter => new(WindowWidth / 2, WindowHeight / 2);
     private string _WindowTitle = string.Empty;
 
     public unsafe SDL_Renderer* Renderer => _Renderer;
@@ -45,11 +45,23 @@ public sealed class Engine : IDisposable
     public void SetWindowFlags(SDL_WindowFlags windowFlags) => _WindowFlags = windowFlags;
     private SDL_WindowFlags _WindowFlags;
 
+    public unsafe void SetRenderDrawColor(byte r, byte g, byte b)
+    {
+        SDL3.SDL_SetRenderDrawColor(_Renderer, r, g, b, 0);
+    }
+
+    public unsafe void SetRenderDrawColor(SDL_Color color)
+    {
+        SDL3.SDL_SetRenderDrawColor(_Renderer, color.r, color.g, color.b, color.a);
+    }
+
+    public unsafe void SetWindowSize(int width, int height)
+    {
+        SDL3.SDL_SetWindowSize(_Window, width, height);
+    }
+
     public unsafe void SetWindowSize(Vector2 size)
     {
-        // SDL_WindowFlags flags = SDL3.SDL_GetWindowFlags(_Window);
-        // bool isResizable = (flags & SDL_WindowFlags.SDL_WINDOW_RESIZABLE) != 0;
-        // SDL3.SDL_SetWindowResizable(_Window, isResizable);
         SDL3.SDL_SetWindowSize(_Window, (int)size.X, (int)size.Y);
     }
 
@@ -70,7 +82,6 @@ public sealed class Engine : IDisposable
         _WindowTitle = windowTitle;
         WindowWidth = windowWidth;
         WindowHeight = windowHeight;
-        _Accumulator = 0;
         _LastTicks = SDL3.SDL_GetTicks();
 
         SDL_InitFlags initFlags = SDL_InitFlags.SDL_INIT_VIDEO;
@@ -109,8 +120,6 @@ public sealed class Engine : IDisposable
                 SDL3.SDL_Quit();
                 throw new Exception("Window or Renderer creation failed.");
             }
-
-            SDL3.SDL_SetRenderDrawColor(_Renderer, 100, 149, 237, 0);
         }
 
         SetWindowIcon(iconPath);
@@ -119,36 +128,34 @@ public sealed class Engine : IDisposable
         _AudioManager?.Init();
     }
 
-    public void Run()
+    public unsafe void Run()
     {
+        float accumulator = 0;
         while (_Running)
         {
             ulong nowTicks = SDL3.SDL_GetTicks();
             float deltaTime = (nowTicks - _LastTicks) / 1000f;
 
             _LastTicks = nowTicks;
-            deltaTime = MathF.Min(deltaTime, 1f);
+            deltaTime = MathF.Min(deltaTime, 0.05f);
 
-            _Accumulator = MathF.Min(_Accumulator + deltaTime, 0.50f);
+            accumulator = MathF.Min(accumulator + deltaTime, 0.05f);
 
             SDL_Event sdlEvent;
-            unsafe
+            while (SDL3.SDL_PollEvent(&sdlEvent))
             {
-                while (SDL3.SDL_PollEvent(&sdlEvent))
+                _InputManager?.ProcessEvent(sdlEvent);
+
+                SDL_EventType eventType = sdlEvent.Type;
+                switch (eventType)
                 {
-                    _InputManager?.ProcessEvent(sdlEvent);
+                    case SDL_EventType.SDL_EVENT_QUIT:
+                        _Running = false;
+                        return;
 
-                    SDL_EventType eventType = sdlEvent.Type;
-                    switch (eventType)
-                    {
-                        case SDL_EventType.SDL_EVENT_QUIT:
-                            _Running = false;
-                            return;
-
-                        case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
-                            HandleWindowResize(sdlEvent.window.data1, sdlEvent.window.data2);
-                            break;
-                    }
+                    case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
+                        HandleWindowResize(sdlEvent.window.data1, sdlEvent.window.data2);
+                        break;
                 }
             }
 
@@ -158,21 +165,17 @@ public sealed class Engine : IDisposable
                 continue;
             }
 
-            while (_Accumulator >= FixedUpdateInterval)
+            while (accumulator >= FixedUpdateInterval)
             {
                 SceneManager.FixedUpdate(FixedUpdateInterval);
-                _Accumulator -= FixedUpdateInterval;
+                accumulator -= FixedUpdateInterval;
             }
 
             SceneManager.Update(deltaTime);
 
-            float alpha = _Accumulator / FixedUpdateInterval;
-            unsafe
-            {
-                SDL3.SDL_RenderClear(_Renderer);
-                SceneManager.Draw(_Renderer, alpha);
-                SDL3.SDL_RenderPresent(_Renderer);
-            }
+            SDL3.SDL_RenderClear(_Renderer);
+            SceneManager.Draw(_Renderer);
+            SDL3.SDL_RenderPresent(_Renderer);
 
             _InputManager?.Clear();
 
