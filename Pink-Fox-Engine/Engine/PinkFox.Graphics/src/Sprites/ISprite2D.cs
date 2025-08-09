@@ -4,7 +4,7 @@ using PinkFox.Core.Components;
 using PinkFox.Graphics.Rendering;
 using SDL;
 
-namespace PinkFox.Core.Scenes;
+namespace PinkFox.Graphics.Sprites;
 
 public interface ISprite2D
 {
@@ -20,7 +20,7 @@ public interface ISprite2D
 
     Vector2 TextureSize { get; }
     Vector2 Center { get; }
-    RectCollider Collider { get; }
+    BoxCollider Collider { get; }
 
     unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null);
     void Dispose();

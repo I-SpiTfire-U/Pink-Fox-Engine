@@ -1,6 +1,6 @@
 using PinkFox.Core.Scenes;
 
-namespace PinkFox.Graphics.Rendering;
+namespace PinkFox.Graphics.Sprites;
 
 public class SpritePool
 {

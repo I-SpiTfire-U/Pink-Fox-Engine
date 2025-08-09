@@ -1,8 +1,8 @@
 using System.Numerics;
 using PinkFox.Core.Collisions;
 using PinkFox.Core.Components;
-using PinkFox.Core.Scenes;
 using PinkFox.Graphics.Rendering;
+using PinkFox.Graphics.Sprites;
 using SDL;
 
 namespace PongGame.GameObjects;
@@ -22,11 +22,17 @@ public class PongBall : Sprite2D, ISprite2D
         float newXPosition = Position.X + _HorizontalDirection * _BallSpeed * deltaTime;
         float newYPosition = Position.Y + _VerticalDirection * _BallSpeed * deltaTime;
 
-        if (Position.Y < 0 || Position.Y > windowHeight - Scale.Y)
+        if (Position.Y < 0)
         {
             audioManager.PlaySound("Collision");
             _VerticalDirection *= -1f;
-            newYPosition = Math.Clamp(newYPosition, 0f, windowHeight - Scale.Y);
+            newYPosition = 0f;
+        }
+        else if (newYPosition > windowHeight - Scale.Y)
+        {
+            audioManager.PlaySound("Collision");
+            _VerticalDirection *= -1f;
+            newYPosition = windowHeight - Scale.Y;
         }
 
         Position = new(newXPosition, newYPosition);

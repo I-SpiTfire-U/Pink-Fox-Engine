@@ -1,7 +1,7 @@
 using System.Numerics;
 using PinkFox.Core.Components;
-using PinkFox.Core.Scenes;
 using PinkFox.Graphics.Rendering;
+using PinkFox.Graphics.Sprites;
 using SDL;
 
 namespace PongGame.GameObjects;
@@ -22,16 +22,16 @@ public class PlayerPaddle : Sprite2D, ISprite2D
         _GamepadIndex = gamepadIndex;
     }
 
-    public void Update(float deltaTime, float windowHeight, IInputManager inputManager)
+    public void Update(float deltaTime, float windowHeight, IInputManager inputManager, PongBall ball, bool isAI)
     {
         float newYPosition = Position.Y;
 
-        if (inputManager.Keyboard.IsKeyHeld(_UpKey) || inputManager.Gamepads.IsButtonHeld(_GamepadIndex, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_UP))
+        if (inputManager.Keyboard.IsKeyHeld(_UpKey) || inputManager.Gamepads.IsButtonHeld(_GamepadIndex, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_UP) || (isAI && ball.Center.Y < Center.Y))
         {
             newYPosition -= MoveSpeed * deltaTime;
         }
 
-        if (inputManager.Keyboard.IsKeyHeld(_DownKey) || inputManager.Gamepads.IsButtonHeld(_GamepadIndex, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_DOWN))
+        if (inputManager.Keyboard.IsKeyHeld(_DownKey) || inputManager.Gamepads.IsButtonHeld(_GamepadIndex, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_DOWN) || (isAI && ball.Center.Y > Center.Y))
         {
             newYPosition += MoveSpeed * deltaTime;
         }

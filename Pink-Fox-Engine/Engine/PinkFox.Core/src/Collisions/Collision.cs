@@ -13,12 +13,12 @@ public static class Collision
         return distanceSquared <= radiusSum * radiusSum;
     }
 
-    public static bool RectOnRectCollision(RectCollider a, RectCollider b)
+    public static bool BoxOnBoxCollision(BoxCollider a, BoxCollider b)
     {
         return a.Position.X < b.Position.X + b.Size.X && a.Position.X + a.Size.X > b.Position.X && a.Position.Y < b.Position.Y + b.Size.Y && a.Position.Y + a.Size.Y > b.Position.Y;
     }
 
-    public static bool CircleOnRectCollision(CircleCollider circle, RectCollider box)
+    public static bool CircleOnBoxCollision(CircleCollider circle, BoxCollider box)
     {
         float closestX = Math.Clamp(circle.Center.X, box.Position.X, box.Position.X + box.Size.X);
         float closestY = Math.Clamp(circle.Center.Y, box.Position.Y, box.Position.Y + box.Size.Y);
@@ -47,7 +47,7 @@ public static class Collision
     {
         return collider switch
         {
-            RectCollider rect => (rect.Position.X, rect.Position.X + rect.Size.X, rect.Position.Y, rect.Position.Y + rect.Size.Y),
+            BoxCollider rect => (rect.Position.X, rect.Position.X + rect.Size.X, rect.Position.Y, rect.Position.Y + rect.Size.Y),
             CircleCollider circle => (circle.Center.X - circle.Radius, circle.Center.X + circle.Radius, circle.Center.Y - circle.Radius, circle.Center.Y + circle.Radius),
             _ => throw new NotSupportedException("Unsupported collider type")
         };

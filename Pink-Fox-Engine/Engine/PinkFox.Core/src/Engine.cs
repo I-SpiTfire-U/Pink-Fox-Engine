@@ -30,39 +30,58 @@ public sealed class Engine : IDisposable
 
     private IInputManager? _InputManager = null;
     private IAudioManager? _AudioManager = null;
-    
+    private IVirtualRenderer? _VirtualRenderer = null;
+    private SDL_WindowFlags _WindowFlags;
+    private SDL_Color _ClearColor = new()
+    {
+        r = 100,
+        g = 149,
+        b = 237,
+        a = 255
+    };
+
     public IInputManager InputManager => _InputManager ?? throw new InvalidOperationException("No input manager available");
     public IAudioManager AudioManager => _AudioManager ?? throw new InvalidOperationException("No audio manager available");
-    public IInputManager? OptionalInputManager => _InputManager;
-    public IAudioManager? OptionalAudioManager => _AudioManager;
+    public IVirtualRenderer VirtualRenderer => _VirtualRenderer ?? throw new InvalidOperationException("No virtual renderer available");
 
     public void SetTargetFPS(int fps) => _TargetFPS = fps;
     public void SetFixedUPS(int ups) => _FixedUPS = ups;
     public void Stop() => _Running = false;
 
     public void SetInputManager(IInputManager inputManager) => _InputManager = inputManager;
-    public void SetAudioManager(IAudioManager audioManager) => _AudioManager = audioManager;
-    public void SetWindowFlags(SDL_WindowFlags windowFlags) => _WindowFlags = windowFlags;
-    private SDL_WindowFlags _WindowFlags;
-
-    public unsafe void SetRenderDrawColor(byte r, byte g, byte b)
+    public void SetAudioManager(IAudioManager audioManager)
     {
-        SDL3.SDL_SetRenderDrawColor(_Renderer, r, g, b, 0);
+        _AudioManager = audioManager;
+        _AudioManager.Init();
+    }
+    public void SetVirtualRenderer(IVirtualRenderer virtualRenderer)
+    {
+        _VirtualRenderer = virtualRenderer;
+        _VirtualRenderer.ClearColor = _ClearColor;
+    }
+    public void SetWindowFlags(SDL_WindowFlags windowFlags) => _WindowFlags = windowFlags;
+
+    public unsafe void SetRenderClearColor(byte r, byte g, byte b)
+    {
+        _ClearColor = new()
+        {
+            r = r,
+            g = g,
+            b = b,
+            a = 255
+        };
+
+        if (_VirtualRenderer is not null)
+        {
+            _VirtualRenderer.ClearColor = _ClearColor;
+        }
+        
+        SDL3.SDL_SetRenderDrawColor(_Renderer, _ClearColor.r, _ClearColor.g, _ClearColor.b, _ClearColor.a);
     }
 
     public unsafe void SetRenderDrawColor(SDL_Color color)
     {
         SDL3.SDL_SetRenderDrawColor(_Renderer, color.r, color.g, color.b, color.a);
-    }
-
-    public unsafe void SetWindowSize(int width, int height)
-    {
-        SDL3.SDL_SetWindowSize(_Window, width, height);
-    }
-
-    public unsafe void SetWindowSize(Vector2 size)
-    {
-        SDL3.SDL_SetWindowSize(_Window, (int)size.X, (int)size.Y);
     }
 
     public unsafe void ToggleFullscreen()
@@ -77,55 +96,35 @@ public sealed class Engine : IDisposable
         }
     }
 
-    public void Initialize(string windowTitle, string iconPath, int windowWidth, int windowHeight)
+    public unsafe void InitializeWindowAndRenderer(string windowTitle, string iconPath, int windowWidth, int windowHeight)
     {
         _WindowTitle = windowTitle;
         WindowWidth = windowWidth;
         WindowHeight = windowHeight;
         _LastTicks = SDL3.SDL_GetTicks();
 
-        SDL_InitFlags initFlags = SDL_InitFlags.SDL_INIT_VIDEO;
-
-        if (_AudioManager is not null)
-        {
-            initFlags |= SDL_InitFlags.SDL_INIT_AUDIO;
-        }
-
-        if (_InputManager is not null)
-        {
-            initFlags |= SDL_InitFlags.SDL_INIT_GAMEPAD | SDL_InitFlags.SDL_INIT_JOYSTICK;
-        }
+        SDL_InitFlags initFlags = SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_AUDIO | SDL_InitFlags.SDL_INIT_GAMEPAD | SDL_InitFlags.SDL_INIT_JOYSTICK;
 
         if (!SDL3.SDL_Init(initFlags))
         {
             throw new Exception($"SDL could not initialize: {SDL3.SDL_GetError()}");
         }
 
-        unsafe
+        _Window = SDL3.SDL_CreateWindow(_WindowTitle, WindowWidth, WindowHeight, _WindowFlags);
+        if (_Window is null)
         {
-            _Window = SDL3.SDL_CreateWindow(_WindowTitle, WindowWidth, WindowHeight, _WindowFlags);
-            if (_Window is null)
-            {
-                throw new Exception($"Failed to create window: {SDL3.SDL_GetError()}");
-            }
+            throw new Exception($"Failed to create window: {SDL3.SDL_GetError()}");
+        }
 
-            _Renderer = SDL3.SDL_CreateRenderer(_Window, (byte*)null);
-            if (_Renderer is null)
-            {
-                throw new Exception($"Failed to create renderer: {SDL3.SDL_GetError()}");
-            }
-
-            if (_Window is null || _Renderer is null)
-            {
-                SDL3.SDL_Quit();
-                throw new Exception("Window or Renderer creation failed.");
-            }
+        _Renderer = SDL3.SDL_CreateRenderer(_Window, (byte*)null);
+        if (_Renderer is null)
+        {
+            throw new Exception($"Failed to create renderer: {SDL3.SDL_GetError()}");
         }
 
         SetWindowIcon(iconPath);
 
         SDL3_ttf.TTF_Init();
-        _AudioManager?.Init();
     }
 
     public unsafe void Run()
@@ -173,8 +172,18 @@ public sealed class Engine : IDisposable
 
             SceneManager.Update(deltaTime);
 
-            SDL3.SDL_RenderClear(_Renderer);
-            SceneManager.Draw(_Renderer);
+            if (_VirtualRenderer is not null)
+            {
+                _VirtualRenderer.Begin(_Renderer);
+                SceneManager.Draw(_Renderer);
+                _VirtualRenderer.End(_Renderer);
+            }
+            else
+            {
+                SDL3.SDL_RenderClear(_Renderer);
+                SceneManager.Draw(_Renderer);
+            }
+
             SDL3.SDL_RenderPresent(_Renderer);
 
             _InputManager?.Clear();
@@ -189,26 +198,31 @@ public sealed class Engine : IDisposable
                 }
             }
         }
-        
+
         Dispose();
     }
 
-    public void HandleWindowResize(int width, int height)
+    public void SetWindowSize(int width, int height)
     {
+        HandleWindowResize(width, height);
+    }
+
+    private unsafe void HandleWindowResize(int width, int height)
+    {
+        SDL3.SDL_SetWindowSize(_Window, width, height);
+
         WindowWidth = width;
         WindowHeight = height;
 
-        unsafe
+        SDL_Rect rect = new()
         {
-            SDL_Rect rect = new()
-            {
-                x = 0,
-                y = 0,
-                w = WindowWidth,
-                h = WindowHeight
-            };
-            SDL3.SDL_SetRenderViewport(_Renderer, &rect);
-        }
+            x = 0,
+            y = 0,
+            w = WindowWidth,
+            h = WindowHeight
+        };
+
+        SDL3.SDL_SetRenderViewport(_Renderer, &rect);
         SceneManager.GetActiveScene()?.OnWindowResize(width, height);
     }
 
@@ -249,7 +263,7 @@ public sealed class Engine : IDisposable
                 {
                     SDL3.SDL_DestroyRenderer(_Renderer);
                 }
-                
+
                 if (_Window is not null)
                 {
                     SDL3.SDL_DestroyWindow(_Window);

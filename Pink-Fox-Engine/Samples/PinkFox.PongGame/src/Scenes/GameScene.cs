@@ -6,12 +6,15 @@ using PinkFox.Core;
 using PongGame.GameObjects;
 using PinkFox.UI.Text;
 using System.Numerics;
+using PinkFox.Core.Collisions;
+using PinkFox.Input;
 
 namespace PongGame.Scenes;
 
 public class GameScene : IScene, IDisposable
 {
     public bool HasBeenLoaded { get; set; }
+    protected bool PlayerTwoIsAI = true;
     protected int PlayerOneScore = 0;
     protected int PlayerTwoScore = 0;
 
@@ -53,9 +56,10 @@ public class GameScene : IScene, IDisposable
         PlayerOneStartPosition = new(0, Engine.WindowCenter.Y - 40);
         PlayerTwoStartPosition = new(Engine.WindowWidth - 15, Engine.WindowCenter.Y - 40);
 
-        RectangleTexture = Texture2D.CreateSquareTexture(Engine.Renderer, 1, 1, new SDL_Color() { r = 255, g = 255, b = 255, a = 255 });
+        RectangleTexture = TextureFactory.CreateRectangle(Engine.Renderer, 1, 1, new SDL_Color() { r = 255, g = 255, b = 255, a = 255 });
+
         Ball = new("Ball", RectangleTexture, BallStartPosition, BallSize);
-        PlayerOne = new("Player One", RectangleTexture, PlayerOneStartPosition, PaddleSize, SDL_Keycode.SDLK_W,  SDL_Keycode.SDLK_S, 0);
+        PlayerOne = new("Player One", RectangleTexture, PlayerOneStartPosition, PaddleSize, SDL_Keycode.SDLK_W, SDL_Keycode.SDLK_S, 0);
         PlayerTwo = new("Player Two", RectangleTexture, PlayerTwoStartPosition, PaddleSize, SDL_Keycode.SDLK_UP, SDL_Keycode.SDLK_DOWN, 1);
     }
 
@@ -68,34 +72,34 @@ public class GameScene : IScene, IDisposable
         Engine.AudioManager.SetSoundVolume("Goal", 1f);
     }
 
-    public void Update(float deltaTime)
+    public unsafe void Update(float deltaTime)
     {
-        Ball.Update(deltaTime, Engine.WindowHeight, Engine.AudioManager);
-        PlayerOne.Update(deltaTime, Engine.WindowHeight, Engine.InputManager);
-        PlayerTwo.Update(deltaTime, Engine.WindowHeight, Engine.InputManager);
+        if (Engine.InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_ESCAPE) || Engine.InputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START))
+        {
+            Engine.Stop();
+        }
+
+        if (Engine.InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_SPACE))
+        {
+            ResetGameObjects();
+            PlayerTwoIsAI = !PlayerTwoIsAI;
+        }
+        if (Engine.InputManager.Gamepads.Count > 1 && !PlayerTwoIsAI)
+        {
+            ResetGameObjects();
+            PlayerTwoIsAI = true;
+        }
+
+        Ball.Update(deltaTime, Engine.VirtualRenderer.VirtualHeight, Engine.AudioManager);
+        PlayerOne.Update(deltaTime, Engine.VirtualRenderer.VirtualHeight, Engine.InputManager, Ball, false);
+        PlayerTwo.Update(deltaTime, Engine.VirtualRenderer.VirtualHeight, Engine.InputManager, Ball, PlayerTwoIsAI);
 
         Ball.OnCollisionWithPaddle(PlayerOne, Engine.AudioManager);
         Ball.OnCollisionWithPaddle(PlayerTwo, Engine.AudioManager);
 
-        if (Ball.Position.X < GoalBufferWidth)
+        if (CheckForGoal())
         {
-            PlayerTwoScore++;
-            PlayerTwoScoreLabel.SetText(PlayerTwoScore.ToString());
-            HandleGoal();
             return;
-        }
-
-        if (Ball.Position.X + Ball.Scale.X > Engine.WindowWidth - GoalBufferWidth)
-        {
-            PlayerOneScore++;
-            PlayerOneScoreLabel.SetText(PlayerOneScore.ToString());
-            HandleGoal();
-            return;
-        }
-
-        if (Engine.InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_ESCAPE) || Engine.InputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START))
-        {
-            Engine.Stop();
         }
     }
 
@@ -116,9 +120,32 @@ public class GameScene : IScene, IDisposable
         Camera.SetViewSize(windowWidth, windowHeight);
     }
 
-    private void HandleGoal()
+    private bool CheckForGoal()
     {
+        if (Ball.Center.X > GoalBufferWidth && Ball.Center.X < Engine.VirtualRenderer.VirtualWidth - GoalBufferWidth)
+        {
+            return false;
+        }
+
+        if (Ball.Position.X < 0f)
+        {
+            PlayerTwoScore++;
+            PlayerTwoScoreLabel.SetText(PlayerTwoScore.ToString());
+        }
+
+        if (Ball.Position.X > 0f)
+        {
+            PlayerOneScore++;
+            PlayerOneScoreLabel.SetText(PlayerOneScore.ToString());
+        }
+
         Engine.AudioManager.PlaySound("Goal");
+        ResetGameObjects();
+        return true;
+    }
+
+    private void ResetGameObjects()
+    {
         Ball.Reset(BallStartPosition);
         PlayerOne.Reset(PlayerOneStartPosition);
         PlayerTwo.Reset(PlayerTwoStartPosition);

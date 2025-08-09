@@ -61,11 +61,13 @@ public class Program
     public static void Main()
     {
         using Engine engine = new();
+        engine.InitializeWindowAndRenderer("My Game", @"Assets\Icon\Icon.png", 800, 600);
+
         // engine.SetInputManager(new PinkFox.Input.InputManager());
         // engine.SetAudioManager(new PinkFox.Audio.AudioManager());
+        // engine.SetVirtualRenderer(new PinkFox.Graphics.VirtualRenderer());
 
-        engine.Initialize("My Game", @"Assets\Icon\Icon.png", 800, 600);
-        engine.SetRenderDrawColor(100, 149, 237);
+        engine.SetRenderClearColor(100, 149, 237);
 
         SceneManager.RegisterScene("Main Scene", new Scene(engine));
         SceneManager.PushScene("Main Scene");

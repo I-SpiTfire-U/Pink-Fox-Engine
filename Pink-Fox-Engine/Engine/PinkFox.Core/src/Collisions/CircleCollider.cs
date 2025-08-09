@@ -39,7 +39,7 @@ public readonly struct CircleCollider : ICollider
         return collider switch
         {
             CircleCollider circle => Collision.CircleOnCircleCollision(this, circle),
-            RectCollider rect => Collision.CircleOnRectCollision(this, rect),
+            BoxCollider rect => Collision.CircleOnBoxCollision(this, rect),
             _ => false
         };
     }

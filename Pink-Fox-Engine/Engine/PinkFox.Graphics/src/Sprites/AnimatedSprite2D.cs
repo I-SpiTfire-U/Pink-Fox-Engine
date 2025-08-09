@@ -1,10 +1,10 @@
 using System.Numerics;
 using PinkFox.Core.Components;
-using PinkFox.Core.Scenes;
 using PinkFox.Core.Collisions;
 using SDL;
+using PinkFox.Graphics.Rendering;
 
-namespace PinkFox.Graphics.Rendering;
+namespace PinkFox.Graphics.Sprites;
 
 public class AnimatedSprite2D : ISprite2D, IDisposable
 {
@@ -26,7 +26,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
 
     public Vector2 TextureSize => new(CurrentAnimation.GetCurrentFrameRect().w, CurrentAnimation.GetCurrentFrameRect().h);
     public Vector2 Center => Position + Scale / 2f;
-    public RectCollider Collider => new(Position, Scale);
+    public BoxCollider Collider => new(Position, Scale);
 
     public AnimatedSprite2D(string name, Texture2D texture, Dictionary<string, Animation> animations, Vector2 position, Vector2? origin = null, Vector2? scale = null, double rotation = 0.0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, int layer = 0, bool isVisible = true)
     {
