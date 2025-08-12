@@ -7,14 +7,9 @@ public class SoundEffect : IDisposable
     public unsafe Mix_Chunk* Chunk { get; init; }
     private bool _Disposed;
 
-    public unsafe SoundEffect(string filePath)
+    public unsafe SoundEffect(string resourceName)
     {
-        if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException($"File not found", filePath);
-        }
-
-        Mix_Chunk* chunk = SDL3_mixer.Mix_LoadWAV(filePath);
+        Mix_Chunk* chunk = Core.ResourceManager.CreateChunkFromResource(resourceName);
         if (chunk is null)
         {
             throw new Exception("Failed to load sound effect");

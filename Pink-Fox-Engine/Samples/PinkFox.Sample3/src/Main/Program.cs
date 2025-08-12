@@ -1,10 +1,9 @@
 using PinkFox.Audio;
 using PinkFox.Core;
 using PinkFox.Core.Scenes;
-using PinkFox.Input;
-using PinkFox.Sample2.Scenes;
+using PinkFox.Sample3.Scenes;
 
-namespace PinkFox.Sample2.Main;
+namespace PinkFox.Sample3.Main;
 
 public class Program
 {
@@ -17,11 +16,12 @@ public class Program
 
         using Engine engine = new();
         engine.InitializeWindowAndRenderer("My Game", "Icons_PinkFoxIcon", InitialWindowWidth, InitialWindowHeight);
-        engine.SetRenderClearColor(0, 0, 0);
 
-        engine.SetInputManager(new InputManager());
+        engine.SetInputManager(new PinkFox.Input.InputManager());
         engine.SetAudioManager(new AudioManager());
         // engine.SetVirtualRenderer(new PinkFox.Graphics.VirtualRenderer());
+
+        engine.SetRenderClearColor(100, 149, 237);
 
         SceneManager.RegisterScene("Main Scene", new Scene(engine));
         SceneManager.PushScene("Main Scene");

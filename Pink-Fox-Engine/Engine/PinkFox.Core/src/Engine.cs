@@ -75,7 +75,7 @@ public sealed class Engine : IDisposable
         {
             _VirtualRenderer.ClearColor = _ClearColor;
         }
-        
+
         SDL3.SDL_SetRenderDrawColor(_Renderer, _ClearColor.r, _ClearColor.g, _ClearColor.b, _ClearColor.a);
     }
 
@@ -96,7 +96,7 @@ public sealed class Engine : IDisposable
         }
     }
 
-    public unsafe void InitializeWindowAndRenderer(string windowTitle, string iconPath, int windowWidth, int windowHeight)
+    public unsafe void InitializeWindowAndRenderer(string windowTitle, string? iconName, int windowWidth, int windowHeight)
     {
         _WindowTitle = windowTitle;
         WindowWidth = windowWidth;
@@ -122,7 +122,10 @@ public sealed class Engine : IDisposable
             throw new Exception($"Failed to create renderer: {SDL3.SDL_GetError()}");
         }
 
-        SetWindowIcon(iconPath);
+        if (!string.IsNullOrEmpty(iconName))
+        {
+            SetWindowIcon(iconName);
+        }
 
         SDL3_ttf.TTF_Init();
     }
@@ -226,20 +229,18 @@ public sealed class Engine : IDisposable
         SceneManager.GetActiveScene()?.OnWindowResize(width, height);
     }
 
-    private void SetWindowIcon(string iconPath)
+    private unsafe void SetWindowIcon(string resourceName)
     {
-        unsafe
+        SDL_Surface* surface = ResourceManager.CreateSurfaceFromResource(resourceName);
+        if (surface is null)
         {
-            SDL_Surface* surface = SDL3_image.IMG_Load(iconPath);
-            if (surface is null)
-            {
-                Console.WriteLine($"Failed to load icon: {SDL3.SDL_GetError()}");
-                return;
-            }
-
-            SDL3.SDL_SetWindowIcon(_Window, surface);
-            SDL3.SDL_free(surface);
+            Console.WriteLine($"Failed to load icon: {SDL3.SDL_GetError()}");
+            return;
         }
+
+        SDL3.SDL_SetWindowIcon(_Window, surface);
+        SDL3.SDL_free(surface);
+
     }
 
     public void Dispose()

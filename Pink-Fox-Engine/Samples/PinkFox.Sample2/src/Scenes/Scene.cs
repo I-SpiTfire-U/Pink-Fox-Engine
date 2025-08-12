@@ -1,8 +1,10 @@
+using System.Numerics;
 using PinkFox.Core;
 using PinkFox.Core.Scenes;
 using PinkFox.Graphics.Cameras;
 using PinkFox.Graphics.Rendering;
 using PinkFox.Graphics.Sprites;
+using PinkFox.UI.Text;
 using SDL;
 
 namespace PinkFox.Sample2.Scenes;
@@ -10,8 +12,14 @@ namespace PinkFox.Sample2.Scenes;
 public class Scene : IScene, IDisposable
 {
     public bool HasBeenLoaded { get; set; }
+    protected bool HasStarted = false;
+    protected float WaitPeriod = 0f;
     protected readonly Engine Engine;
     protected readonly Camera2D Camera;
+
+    protected readonly TextEngine TextEngine;
+    protected readonly Font ArialFont;
+    protected readonly Label TestLabel;
 
     protected readonly Texture2D LightTexture;
     protected readonly Texture2D BlockTexture;
@@ -19,6 +27,14 @@ public class Scene : IScene, IDisposable
     protected readonly Sprite2D LightSprite;
 
     protected readonly SpritePool SpritePool;
+
+    protected readonly string[] Lines =
+    [
+        "Hello, Friend...",
+        "How are you today?..",
+        "I hope you're well..."
+    ];
+    protected int CurrentLine = 0;
     
     private bool _Disposed;
 
@@ -28,6 +44,27 @@ public class Scene : IScene, IDisposable
 
         Camera = new(1f, 0.1f, 5f);
         Camera.SetViewSize(Engine.WindowWidth, Engine.WindowHeight);
+
+        TextEngine = new(Engine.Renderer);
+
+        ArialFont = new("Fonts_Arial", 32, TextEngine);
+        TestLabel = new(Engine.Renderer, ArialFont, "Hello, World!", new Vector2(30, 30));
+        TestLabel.OnCharacterTyped += () => Engine.AudioManager.PlaySound("TypeSound");
+        TestLabel.OnTypingBegin += () =>
+        {
+            HasStarted = true;
+            TestLabel.Shake(2f);
+        };
+        TestLabel.OnTypingEnd += () =>
+        {
+            HasStarted = false;
+            WaitPeriod = 0f;
+            TestLabel.Shake(1f);
+            CurrentLine++;
+        };
+        TestLabel.StartTypingEffect(Lines[CurrentLine], 0.2f);
+
+        Texture2D testBitmapFontTexture = new("bitmap_font", Engine.Renderer);
 
         BlockTexture = TextureFactory.CreateRectangle(Engine.Renderer, 200, 200, new SDL_Color() { r = 100, g = 100, b = 100, a = 255 });
         LightTexture = TextureFactory.CreateCircleGradient(Engine.Renderer, 500, 500, new SDL_Color() { r = 255, g = 244, b = 214, a = 255 });
@@ -43,6 +80,8 @@ public class Scene : IScene, IDisposable
     public void LoadContent()
     {
         // TODO: Load game assets such as textures, audio, and other content here:
+
+        Engine.AudioManager.LoadSound("TypeSound", "Audio_TypeSound");
         
     }
 
@@ -71,6 +110,17 @@ public class Scene : IScene, IDisposable
         {
             Engine.Stop();
         }
+
+        TestLabel.Update(deltaTime);
+
+        if (!HasStarted && CurrentLine < Lines.Length)
+        {
+            WaitPeriod += deltaTime;
+            if (WaitPeriod >= 4f)
+            {
+                TestLabel.StartTypingEffect(Lines[CurrentLine], 0.2f);
+            }
+        }
     }
 
     public void FixedUpdate(float fixedUpdateInterval)
@@ -88,9 +138,11 @@ public class Scene : IScene, IDisposable
             if (sprite.IsVisible && Camera.SpriteIsInView(sprite))
             {
                 sprite.Draw(renderer, Camera);
-                Console.WriteLine(sprite.Name);
+                //Console.WriteLine(sprite.Name);
             }
         }
+
+        TestLabel.Draw();
     }
 
     public void OnWindowResize(int windowWidth, int windowHeight)

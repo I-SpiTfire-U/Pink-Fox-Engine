@@ -60,7 +60,7 @@ public class VirtualRenderer : IVirtualRenderer
         };
 
         SDL3.SDL_SetTextureScaleMode(_RenderTarget.TextureHandle, SDL_ScaleMode.SDL_SCALEMODE_NEAREST);
-        _RenderTarget.Draw(actualRenderer, &dest);
+        _RenderTarget.Draw(actualRenderer, dest);
     }
 
     public unsafe Vector2 WindowToVirtualCoords(SDL_Renderer* renderer, Vector2 windowPosition)

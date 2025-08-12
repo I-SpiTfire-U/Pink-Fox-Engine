@@ -15,7 +15,7 @@ public class AudioManager : IAudioManager
     private readonly ConcurrentDictionary<string, SoundEffect> _SoundEffects = new();
     private readonly ConcurrentDictionary<string, MusicTrack> _MusicTracks = new();
 
-    public void Init()
+    public unsafe void Init()
     {
         if (_Initialized)
         {
@@ -36,25 +36,26 @@ public class AudioManager : IAudioManager
         {
             Console.WriteLine("Warning: WAV format not supported.");
         }
+        
         Console.WriteLine($"Mixer Init Result: {result}");
 
-        unsafe
+        SDL_AudioSpec audioSpec = new()
         {
-            SDL_AudioSpec audioSpec = new()
-            {
-                freq = 44100,
-                format = SDL_AudioFormat.SDL_AUDIO_S16LE,
-                channels = 2
-            };
+            freq = 44100,
+            format = SDL_AudioFormat.SDL_AUDIO_S16LE,
+            channels = 2
+        };
 
-            if (!SDL3_mixer.Mix_OpenAudio(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audioSpec))
-            {
-                Console.WriteLine($"Mix_OpenAudio failed: {SDL3.SDL_GetError()}");
-                return;
-            }
-
-            _ = SDL3_mixer.Mix_AllocateChannels(32);
+        if (!SDL3_mixer.Mix_OpenAudio(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audioSpec))
+        {
+            Console.WriteLine($"Mix_OpenAudio failed: {SDL3.SDL_GetError()}");
+            return;
         }
+
+        _ = SDL3_mixer.Mix_AllocateChannels(32);
+
+        string? driver = SDL3.SDL_GetCurrentAudioDriver();
+        Console.WriteLine($"Using SDL audio driver: {driver}");
 
         _Initialized = true;
     }
@@ -184,7 +185,7 @@ public class AudioManager : IAudioManager
             _CurrentMusic = null;
         }
     }
-    
+
     public void Shutdown()
     {
         if (!_Initialized)
@@ -205,7 +206,7 @@ public class AudioManager : IAudioManager
             track.Dispose();
         }
         _MusicTracks.Clear();
-        
+
         SDL3_mixer.Mix_CloseAudio();
         SDL3_mixer.Mix_Quit();
 

@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Runtime.InteropServices;
 using SDL;
 
 namespace PinkFox.Graphics.Rendering;
@@ -12,9 +11,9 @@ public class Texture2D : IDisposable
 
     private bool _Disposed;
 
-    public unsafe Texture2D(string filePath, SDL_Renderer* renderer)
+    public unsafe Texture2D(string resourceName, SDL_Renderer* renderer)
     {
-        SDL_Surface* surface = CreateSurface(filePath);
+        SDL_Surface* surface = Core.ResourceManager.CreateSurfaceFromResource(resourceName);
         Width = surface->w;
         Height = surface->h;
         TextureHandle = CreateTexture(renderer, surface);
@@ -52,34 +51,76 @@ public class Texture2D : IDisposable
         SDL3.SDL_SetRenderTarget(renderer, TextureHandle);
     }
 
-    public unsafe void Draw(SDL_Renderer* renderer, SDL_FRect* destRect)
+    public unsafe void Draw(SDL_Renderer* renderer, SDL_FRect destinationRect, SDL_FRect? sourceRect = null)
     {
-        SDL3.SDL_RenderTexture(renderer, TextureHandle, null, destRect);
+        if (sourceRect is not null)
+        {
+            SDL_FRect sRect = sourceRect.Value;
+            SDL3.SDL_RenderTexture(renderer, TextureHandle, &sRect, &destinationRect);
+            return;
+        }
+        SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
     }
 
-    public unsafe void Draw(SDL_Renderer* renderer, float xPosition, float yPosition)
+    public unsafe void Draw(SDL_Renderer* renderer, float xPosition, float yPosition, float scale = 1f, SDL_FRect? sourceRect = null)
     {
+        float width = Width;
+        float height = Height;
+
+        if (sourceRect.HasValue)
+        {
+            width = sourceRect.Value.w;
+            height = sourceRect.Value.h;
+        }
+
+        width *= scale;
+        height *= scale;
+
         SDL_FRect destinationRect = new()
         {
             x = xPosition,
             y = yPosition,
-            w = Width,
-            h = Height
+            w = width,
+            h = height
         };
 
+        if (sourceRect is not null)
+        {
+            SDL_FRect sRect = sourceRect.Value;
+            SDL3.SDL_RenderTexture(renderer, TextureHandle, &sRect, &destinationRect);
+            return;
+        }
         SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
     }
 
-    public unsafe void Draw(SDL_Renderer* renderer, Vector2 position)
+    public unsafe void Draw(SDL_Renderer* renderer, Vector2 position, float scale = 1f, SDL_FRect? sourceRect = null)
     {
+        float width = Width;
+        float height = Height;
+
+        if (sourceRect.HasValue)
+        {
+            width = sourceRect.Value.w;
+            height = sourceRect.Value.h;
+        }
+
+        width *= scale;
+        height *= scale;
+
         SDL_FRect destinationRect = new()
         {
             x = position.X,
             y = position.Y,
-            w = Width,
-            h = Height
+            w = width,
+            h = height
         };
 
+        if (sourceRect is not null)
+        {
+            SDL_FRect sRect = sourceRect.Value;
+            SDL3.SDL_RenderTexture(renderer, TextureHandle, &sRect, &destinationRect);
+            return;
+        }
         SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
     }
 

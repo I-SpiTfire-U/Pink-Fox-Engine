@@ -7,14 +7,9 @@ public class MusicTrack : IDisposable
     public unsafe Mix_Music* Track { get; init; }
     private bool _Disposed;
 
-    public unsafe MusicTrack(string filePath)
+    public unsafe MusicTrack(string resourceName)
     {
-        if (!File.Exists(filePath))
-        {
-            throw new FileNotFoundException($"File not found", filePath);
-        }
-
-        Mix_Music* track = SDL3_mixer.Mix_LoadMUS(filePath);
+        Mix_Music* track = Core.ResourceManager.CreateMusicFromResource(resourceName);
         if (track is null)
         {
             throw new Exception($"Failed to load music track: {SDL3.SDL_GetError()}");

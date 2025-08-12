@@ -12,6 +12,7 @@ public class PlayerPaddle : Sprite2D, ISprite2D
     private readonly SDL_Keycode _DownKey;
     private readonly int _GamepadIndex;
 
+    private readonly Vector2 DefaultPosition;
     private const float MoveSpeed = 250f;
 
     public PlayerPaddle(string name, Texture2D texture, Vector2 position, Vector2 scale, SDL_Keycode upKey, SDL_Keycode downKey, int gamepadIndex, bool isVisible = true)
@@ -20,6 +21,7 @@ public class PlayerPaddle : Sprite2D, ISprite2D
         _UpKey = upKey;
         _DownKey = downKey;
         _GamepadIndex = gamepadIndex;
+        DefaultPosition = position;
     }
 
     public void Update(float deltaTime, float windowHeight, IInputManager inputManager, PongBall ball, bool isAI)
@@ -39,8 +41,8 @@ public class PlayerPaddle : Sprite2D, ISprite2D
         Position = new(Position.X, Math.Clamp(newYPosition, 0f, windowHeight - Scale.Y));
     }
 
-    public void Reset(Vector2 position)
+    public void Reset()
     {
-        Position = position;
+        Position = DefaultPosition;
     }
 }

@@ -1,7 +1,7 @@
 using PinkFox.Graphics.Rendering;
 using SDL;
 
-namespace PinkFox.Graphics.Sprites;
+namespace PinkFox.Graphics.Animations;
 
 public class Animation
 {

@@ -2,22 +2,19 @@ using SDL;
 
 namespace PinkFox.UI.Text;
 
-public class Font : IDisposable
+public class TextEngine : IDisposable
 {
-    public unsafe TTF_Font* Handle { get; private set; }
     public unsafe TTF_TextEngine* Engine { get; private set; }
 
     private bool _Disposed;
 
-    public unsafe Font(string resourceName, float fontSize, TextEngine textEngine)
+    public unsafe TextEngine(SDL_Renderer* renderer)
     {
-        Handle = Core.ResourceManager.CreateFontFromResource(resourceName, fontSize);
-        if (Handle is null)
+        Engine = SDL3_ttf.TTF_CreateRendererTextEngine(renderer);
+        if (Engine is null)
         {
-            throw new Exception($"Failed to load font from '{resourceName}': {SDL3.SDL_GetError()}");
+            throw new Exception($"Failed to create text engine: {SDL3.SDL_GetError()}");
         }
-
-        Engine = textEngine.Engine;
     }
 
     public void Dispose()
@@ -37,10 +34,10 @@ public class Font : IDisposable
         {
             unsafe
             {
-                if (Handle is not null)
+                if (Engine is not null)
                 {
-                    SDL3_ttf.TTF_CloseFont(Handle);
-                    Handle = null;
+                    SDL3_ttf.TTF_DestroyRendererTextEngine(Engine);
+                    Engine = null;
                 }
             }
         }

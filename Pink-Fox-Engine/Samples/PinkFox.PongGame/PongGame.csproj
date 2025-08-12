@@ -7,12 +7,11 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <Content Include="Assets\**\*">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+        <EmbeddedResource Include="Assets\**\*" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
+        <ProjectReference Include="..\..\Engine\PinkFox.Common\PinkFox.Common.csproj" />
         <ProjectReference Include="..\..\Engine\PinkFox.Graphics\PinkFox.Graphics.csproj" />
         <ProjectReference Include="..\..\Engine\PinkFox.Input\PinkFox.Input.csproj" />
         <ProjectReference Include="..\..\Engine\PinkFox.Audio\PinkFox.Audio.csproj" />

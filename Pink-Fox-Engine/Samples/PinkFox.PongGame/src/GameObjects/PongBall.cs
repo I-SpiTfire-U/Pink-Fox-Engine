@@ -12,36 +12,36 @@ public class PongBall : Sprite2D, ISprite2D
     private float _BallSpeed = 150f;
     private float _HorizontalDirection = 1f;
     private float _VerticalDirection = 1f;
+
+    private readonly Vector2 DefaultPosition;
     private const float SpeedIncrease = 10f;
 
     public PongBall(string name, Texture2D texture, Vector2 position, Vector2 scale, bool isVisible = true)
-    : base(name, texture, position, null, null, scale, 0d, SDL_FlipMode.SDL_FLIP_NONE, 0, isVisible) { }
+    : base(name, texture, position, null, null, scale, 0d, SDL_FlipMode.SDL_FLIP_NONE, 0, isVisible)
+    {
+        DefaultPosition = position;
+    }
 
     public void Update(float deltaTime, float windowHeight, IAudioManager audioManager)
     {
         float newXPosition = Position.X + _HorizontalDirection * _BallSpeed * deltaTime;
         float newYPosition = Position.Y + _VerticalDirection * _BallSpeed * deltaTime;
 
-        if (Position.Y < 0)
+        if (newYPosition < 0 || newYPosition > windowHeight - Scale.Y)
         {
             audioManager.PlaySound("Collision");
             _VerticalDirection *= -1f;
-            newYPosition = 0f;
+            newYPosition = Math.Clamp(newYPosition, 0f, windowHeight - Scale.Y);
         }
-        else if (newYPosition > windowHeight - Scale.Y)
-        {
-            audioManager.PlaySound("Collision");
-            _VerticalDirection *= -1f;
-            newYPosition = windowHeight - Scale.Y;
-        }
+
 
         Position = new(newXPosition, newYPosition);
     }
 
-    public void Reset(Vector2 position)
+    public void Reset()
     {
         _BallSpeed = 150f;
-        Position = position;
+        Position = DefaultPosition;
     }
 
     public void OnCollisionWithPaddle(PlayerPaddle paddle, IAudioManager audioManager)

@@ -8,8 +8,13 @@ public class Program
 {
     public static void Main()
     {
+        const int InitialWindowWidth = 800;
+        const int InitialWindowHeight = 600;
+
+        ResourceManager.LoadResources();
+
         using Engine engine = new();
-        engine.InitializeWindowAndRenderer("My Game", @"Assets\Icon\Icon.png", 800, 600);
+        engine.InitializeWindowAndRenderer("My Game", "Icons_PinkFoxIcon", InitialWindowWidth, InitialWindowHeight);
 
         // engine.SetInputManager(new PinkFox.Input.InputManager());
         // engine.SetAudioManager(new PinkFox.Audio.AudioManager());

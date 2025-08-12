@@ -4,6 +4,7 @@ using PinkFox.Core.Scenes;
 using PinkFox.Graphics.Rendering;
 using PinkFox.Input;
 using PongGame.Scenes;
+using SDL;
 
 namespace PinkFox.PongGame.Main;
 
@@ -14,9 +15,11 @@ public class Program
         const int InitialWindowWidth = 612;
         const int InitialWindowHeight = 480;
 
+        ResourceManager.LoadResources();
+        
         using Engine engine = new();
-        engine.SetWindowFlags(SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
-        engine.InitializeWindowAndRenderer("PinkFox - Pong", @"Assets\Icon\Icon.png", InitialWindowWidth, InitialWindowHeight);
+        engine.SetWindowFlags(SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
+        engine.InitializeWindowAndRenderer("PinkFox - Pong", "Icons_PinkFoxIcon", InitialWindowWidth, InitialWindowHeight);
 
         engine.SetInputManager(new InputManager());
         engine.SetAudioManager(new AudioManager());

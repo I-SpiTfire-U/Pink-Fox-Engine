@@ -4,10 +4,8 @@ using PinkFox.Graphics.Rendering;
 using PinkFox.Graphics.Cameras;
 using PinkFox.Core;
 using PongGame.GameObjects;
-using PinkFox.UI.Text;
 using System.Numerics;
-using PinkFox.Core.Collisions;
-using PinkFox.Input;
+using PinkFox.Graphics.Fonts;
 
 namespace PongGame.Scenes;
 
@@ -23,20 +21,17 @@ public class GameScene : IScene, IDisposable
     protected readonly Engine Engine;
     protected readonly Camera2D Camera;
 
-    protected readonly Font ArialFont;
+    protected BitmapFontData GameFontData;
+    protected BitmapFont GameFont;
+    protected Texture2D GameFontTexture;
     protected readonly Label PlayerOneScoreLabel;
     protected readonly Label PlayerTwoScoreLabel;
+    protected Label FPSLabel;
 
     protected readonly Texture2D RectangleTexture;
     protected readonly PongBall Ball;
     protected readonly PlayerPaddle PlayerOne;
     protected readonly PlayerPaddle PlayerTwo;
-
-    protected readonly Vector2 BallSize;
-    protected readonly Vector2 PaddleSize;
-    protected readonly Vector2 BallStartPosition;
-    protected readonly Vector2 PlayerOneStartPosition;
-    protected readonly Vector2 PlayerTwoStartPosition;
 
     private bool _Disposed;
 
@@ -46,27 +41,25 @@ public class GameScene : IScene, IDisposable
         Camera = new(1f, 0.1f, 5f);
         Camera.SetViewSize(Engine.WindowWidth, Engine.WindowHeight);
 
-        ArialFont = new(@"Assets\Fonts\arial.ttf", 32f);
-        PlayerOneScoreLabel = new(Engine.Renderer, ArialFont, "0", new Vector2(Engine.WindowCenter.X - 100, 50));
-        PlayerTwoScoreLabel = new(Engine.Renderer, ArialFont, "0", new Vector2(Engine.WindowCenter.X + 100, 50));
+        GameFontTexture = new("Arial_Regular_32", Engine.Renderer);
+        GameFontData = BitmapFont.LoadFontDataFromJson("Json_Arial_Regular_32");
+        GameFont = new(GameFontTexture, GameFontData);
 
-        BallSize = new(20, 20);
-        PaddleSize = new(15, 80);
-        BallStartPosition = new(Engine.WindowCenter.X - 10, Engine.WindowCenter.Y - 10);
-        PlayerOneStartPosition = new(0, Engine.WindowCenter.Y - 40);
-        PlayerTwoStartPosition = new(Engine.WindowWidth - 15, Engine.WindowCenter.Y - 40);
+        PlayerOneScoreLabel = new(GameFont, "0", 32, new Vector2(Engine.WindowCenter.X - 100, 50));
+        PlayerTwoScoreLabel = new(GameFont, "0", 32, new Vector2(Engine.WindowCenter.X + 100, 50));
+        FPSLabel = new(GameFont, null, 16, new(0, 0));
 
         RectangleTexture = TextureFactory.CreateRectangle(Engine.Renderer, 1, 1, new SDL_Color() { r = 255, g = 255, b = 255, a = 255 });
 
-        Ball = new("Ball", RectangleTexture, BallStartPosition, BallSize);
-        PlayerOne = new("Player One", RectangleTexture, PlayerOneStartPosition, PaddleSize, SDL_Keycode.SDLK_W, SDL_Keycode.SDLK_S, 0);
-        PlayerTwo = new("Player Two", RectangleTexture, PlayerTwoStartPosition, PaddleSize, SDL_Keycode.SDLK_UP, SDL_Keycode.SDLK_DOWN, 1);
+        Ball = new("Ball", RectangleTexture, new(Engine.WindowCenter.X - 10, Engine.WindowCenter.Y - 10), new(20, 20));
+        PlayerOne = new("Player One", RectangleTexture, new(0, Engine.WindowCenter.Y - 40), new(15, 80), SDL_Keycode.SDLK_W, SDL_Keycode.SDLK_S, 0);
+        PlayerTwo = new("Player Two", RectangleTexture, new(Engine.WindowWidth - 15, Engine.WindowCenter.Y - 40), new(15, 80), SDL_Keycode.SDLK_UP, SDL_Keycode.SDLK_DOWN, 1);
     }
 
     public void LoadContent()
     {
-        Engine.AudioManager.LoadSound("Collision", @"Assets\Audio\Collision.wav");
-        Engine.AudioManager.LoadSound("Goal", @"Assets\Audio\Goal.wav");
+        Engine.AudioManager.LoadSound("Collision", "Audio_Collision");
+        Engine.AudioManager.LoadSound("Goal", "Audio_Goal");
 
         Engine.AudioManager.SetSoundVolume("Collision", 1f);
         Engine.AudioManager.SetSoundVolume("Goal", 1f);
@@ -74,6 +67,10 @@ public class GameScene : IScene, IDisposable
 
     public unsafe void Update(float deltaTime)
     {
+        UpdateFps(deltaTime);
+        PlayerOneScoreLabel.Update(deltaTime);
+        PlayerTwoScoreLabel.Update(deltaTime);
+
         if (Engine.InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_ESCAPE) || Engine.InputManager.Gamepads.IsButtonHeld(0, SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START))
         {
             Engine.Stop();
@@ -84,6 +81,7 @@ public class GameScene : IScene, IDisposable
             ResetGameObjects();
             PlayerTwoIsAI = !PlayerTwoIsAI;
         }
+
         if (Engine.InputManager.Gamepads.Count > 1 && !PlayerTwoIsAI)
         {
             ResetGameObjects();
@@ -111,8 +109,9 @@ public class GameScene : IScene, IDisposable
         PlayerTwo.Draw(renderer, Camera);
         Ball.Draw(renderer, Camera);
 
-        PlayerOneScoreLabel.Draw();
-        PlayerTwoScoreLabel.Draw();
+        PlayerOneScoreLabel.Draw(renderer, Camera);
+        PlayerTwoScoreLabel.Draw(renderer, Camera);
+        FPSLabel.Draw(renderer, Camera);
     }
 
     public void OnWindowResize(int windowWidth, int windowHeight)
@@ -122,21 +121,21 @@ public class GameScene : IScene, IDisposable
 
     private bool CheckForGoal()
     {
-        if (Ball.Center.X > GoalBufferWidth && Ball.Center.X < Engine.VirtualRenderer.VirtualWidth - GoalBufferWidth)
-        {
-            return false;
-        }
-
-        if (Ball.Position.X < 0f)
+        if (Ball.Center.X < 0f)
         {
             PlayerTwoScore++;
             PlayerTwoScoreLabel.SetText(PlayerTwoScore.ToString());
+            PlayerTwoScoreLabel.Shake(1f, 1f);
         }
-
-        if (Ball.Position.X > 0f)
+        else if (Ball.Center.X > Engine.VirtualRenderer.VirtualWidth)
         {
             PlayerOneScore++;
             PlayerOneScoreLabel.SetText(PlayerOneScore.ToString());
+            PlayerOneScoreLabel.Shake(1f, 1f);
+        }
+        else
+        {
+            return false;
         }
 
         Engine.AudioManager.PlaySound("Goal");
@@ -146,9 +145,28 @@ public class GameScene : IScene, IDisposable
 
     private void ResetGameObjects()
     {
-        Ball.Reset(BallStartPosition);
-        PlayerOne.Reset(PlayerOneStartPosition);
-        PlayerTwo.Reset(PlayerTwoStartPosition);
+        Ball.Reset();
+        PlayerOne.Reset();
+        PlayerTwo.Reset();
+    }
+
+    private int _FrameCount = 0;
+    private float _ElapsedTime = 0f;
+    private float _Fps = 0;
+
+    public void UpdateFps(float deltaTime)
+    {
+        _FrameCount++;
+        _ElapsedTime += deltaTime;
+
+        if (_ElapsedTime >= 1f)
+        {
+            _Fps = _FrameCount;
+            _FrameCount = 0;
+            _ElapsedTime = 0f;
+        }
+
+        FPSLabel.SetText($"FPS: {_Fps:F2}");
     }
 
     public void Dispose()
@@ -166,10 +184,7 @@ public class GameScene : IScene, IDisposable
 
         if (disposing)
         {
-            PlayerOneScoreLabel.Dispose();
-            PlayerTwoScoreLabel.Dispose();
-            ArialFont.Dispose();
-
+            GameFontTexture.Dispose();
             Ball.Dispose();
             PlayerOne.Dispose();
             PlayerTwo.Dispose();

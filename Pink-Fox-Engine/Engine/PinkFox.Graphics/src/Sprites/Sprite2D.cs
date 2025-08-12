@@ -9,10 +9,12 @@ namespace PinkFox.Graphics.Sprites;
 public class Sprite2D : ISprite2D, IDisposable
 {
     public string Name { get; init; }
-    public Texture2D Texture { get; set; }
+    public Texture2D Texture { get; protected set; }
+    public Vector2 TextureSize { get; protected set; }
+    public SDL_FRect SourceRect { get; set; }
+    
     public Vector2 Position { get; set; }
     public Vector2 Origin { get; set; }
-    public SDL_FRect? SourceRect { get; set; }
     public Vector2 Scale { get; set; }
     public double Rotation { get; set; }
     public SDL_FlipMode FlipMode { get; set; }
@@ -21,17 +23,25 @@ public class Sprite2D : ISprite2D, IDisposable
 
     private bool _Disposed = false;
 
-    public Vector2 TextureSize => new(Texture.Width, Texture.Height);
     public Vector2 Center => Position + Scale / 2f;
-    public BoxCollider Collider => new(Position, Scale);
+    public ICollider Collider => new BoxCollider(Position, Scale);
+    public double RotationDegrees => Rotation * (180.0 / Math.PI);
 
-    public Sprite2D(string name, Texture2D texture, Vector2 position, Vector2? origin = null, SDL_FRect? sourceRect = null, Vector2? scale = null, double rotation = 0.0f, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, int layer = 0, bool isVisible = true)
+    public Sprite2D(string name, Texture2D texture, Vector2 position, Vector2? origin = null, SDL_FRect? sourceRect = null, Vector2? scale = null, double rotation = 0.0d, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE, int layer = 0, bool isVisible = true)
     {
         Name = name;
         Texture = texture;
+        TextureSize = new(Texture.Width, Texture.Height);
+
+        SourceRect = sourceRect ?? new()
+        {
+            x = 0,
+            y = 0,
+            w = TextureSize.X,
+            h = TextureSize.Y
+        };
         Position = position;
-        SourceRect = sourceRect;
-        Scale = scale ?? new(Texture.Width, Texture.Height);
+        Scale = scale ?? TextureSize;
         Origin = origin ?? Center;
         Rotation = rotation;
         FlipMode = flipMode;
@@ -46,30 +56,32 @@ public class Sprite2D : ISprite2D, IDisposable
             return;
         }
 
-        Vector2 screenPos = camera2D?.WorldToScreen(Position) ?? Position;
+        Vector2 screenPosition = camera2D?.WorldToScreen(Position) ?? Position;
         float zoom = camera2D?.Zoom ?? 1f;
 
         SDL_FRect destinationRect = new()
         {
-            x = screenPos.X,
-            y = screenPos.Y,
+            x = screenPosition.X,
+            y = screenPosition.Y,
             w = Scale.X * zoom,
             h = Scale.Y * zoom
         };
 
+        SDL_FRect sourceRect = SourceRect;
+
         SDL_FPoint center = new()
         {
-            x = Scale.X * zoom / 2f,
-            y = Scale.Y * zoom / 2f
+            x = Origin.X * zoom,
+            y = Origin.Y * zoom
         };
 
-        if (SourceRect.HasValue)
-        {
-            SDL_FRect sourceRect = SourceRect.Value;
-            SDL3.SDL_RenderTextureRotated(renderer, Texture.TextureHandle, &sourceRect, &destinationRect, Rotation, &center, FlipMode);
-            return;
-        }
-        SDL3.SDL_RenderTextureRotated(renderer, Texture.TextureHandle, null, &destinationRect, Rotation, &center, FlipMode);
+        SDL3.SDL_RenderTextureRotated(renderer, Texture.TextureHandle, &sourceRect, &destinationRect, RotationDegrees, &center, FlipMode);
+    }
+
+    public void SetNewTexture(Texture2D texture)
+    {
+        Texture = texture;
+        TextureSize = new(Texture.Width, Texture.Height);
     }
 
     public void Dispose()
@@ -89,4 +101,6 @@ public class Sprite2D : ISprite2D, IDisposable
 
         _Disposed = true;
     }
+
+    public override string ToString() => $"{Name} Pos:{Position} Scale:{Scale} Rot:{RotationDegrees}° Visible:{IsVisible}";
 }
