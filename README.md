@@ -42,6 +42,7 @@ I’d love to see what people create with the engine, and I welcome any feedback
 - [ ] Create a few basic sample projects to showcase different features.
 - [ ] Add more quality of life features to specific parts of the engine to make the developer experience more enjoyable.
 - [ ] Optimize more where possible.
+- [ ] Add documentation comments.
 
 ## Creating and Running a Game
 
