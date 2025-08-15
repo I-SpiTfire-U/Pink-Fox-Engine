@@ -8,7 +8,7 @@
 
 ## Background
 
-The Pink Fox Engine is a hobby project that I'm putting together as a way to learn more about game development and how different things work under the hood in real engines. I thought a game engine would be an intriguing project to create as a way of showcasing my ability to code but also as a tool that could actually be used realistically.
+The Pink Fox Engine is a hobby project that I'm putting together as a way to learn more about game development and how different things work under the hood in real engines. I thought a game engine would be an intriguing project to create as a way of showcasing how far I've come but also as a tool that could actually be used realistically.
 
 Despite the Pink Fox Engine being a hobby project, I do hope to develop it to a point that it can be used to make a fully functioning game, as I've always wanted to have my own game engine to use for my future game projects and to share with others!
 
