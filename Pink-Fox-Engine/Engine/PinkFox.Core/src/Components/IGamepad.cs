@@ -5,6 +5,7 @@ namespace PinkFox.Core.Components;
 public interface IGamepad
 {
     unsafe SDL_Gamepad* Handle { get; }
+    bool AreAnyButtonsHeld { get; }
     SDL_JoystickID InstanceId { get; }
 
     bool IsButtonDown(SDL_GamepadButton button);

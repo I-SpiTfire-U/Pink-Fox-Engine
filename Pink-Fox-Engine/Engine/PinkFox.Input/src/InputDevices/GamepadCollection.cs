@@ -12,6 +12,17 @@ public class GamepadCollection : IGamepadCollection, IDisposable
 
     private bool _Disposed;
 
+    public bool AreAnyButtonsHeld(int gamepadIndex)
+    {
+        IGamepad? gamepad = AtIndex(gamepadIndex);
+        if (gamepad is null)
+        {
+            //Console.WriteLine($"[Warning] Gamepad index '{gamepadIndex}' is out of range (Count: {Count}).");
+            return false;
+        }
+        return gamepad.AreAnyButtonsHeld;
+    }
+
     public bool IsButtonDown(int gamepadIndex, SDL_GamepadButton button)
     {
         IGamepad? gamepad = AtIndex(gamepadIndex);

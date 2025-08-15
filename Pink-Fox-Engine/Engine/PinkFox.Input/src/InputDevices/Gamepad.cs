@@ -7,6 +7,7 @@ public class Gamepad : IGamepad, IDisposable
 {
     public unsafe SDL_Gamepad* Handle { get; init; }
     public SDL_JoystickID InstanceId { get; init; }
+    public bool AreAnyButtonsHeld => _ButtonsHeld.Count > 0;
 
     private readonly HashSet<SDL_GamepadButton> _ButtonsDown = [];
     private readonly HashSet<SDL_GamepadButton> _ButtonsUp = [];

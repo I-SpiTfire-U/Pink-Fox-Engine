@@ -7,6 +7,7 @@ public interface IGamepadCollection
     int Count { get; }
     bool AreGamepadsConnected { get; }
 
+    bool AreAnyButtonsHeld(int gamepadIndex);
     bool IsButtonDown(int gamepadIndex, SDL_GamepadButton button);
     bool IsButtonUp(int gamepadIndex, SDL_GamepadButton button);
     bool IsButtonHeld(int gamepadIndex, SDL_GamepadButton button);

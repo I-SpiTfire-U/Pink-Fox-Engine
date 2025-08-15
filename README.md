@@ -12,7 +12,7 @@ The Pink Fox Engine is a hobby project that I'm putting together as a way to lea
 
 Despite the Pink Fox Engine being a hobby project, I do hope to develop it to a point that it can be used to make a fully functioning game, as I've always wanted to have my own game engine to use for my future game projects and to share with others!
 
-## To-Do
+## To-Do List
 
 - [X] Get the base engine set up and running
 - [X] Create a scene manager and a basic scene interface to use for different scene types in the future
@@ -27,8 +27,11 @@ Despite the Pink Fox Engine being a hobby project, I do hope to develop it to a 
 - [X] Create an input system that manages keyboard and mouse input, but can support gamepads and anything else later on
 - [X] Add gamepad support to the input system that can handle multiple gamepads at once
 - [X] Set up a basic UI text system for drawing text to the screen
-- [ ] Add more functionality to the text UI system and optimize it
-- [ ] Get a basic shader system set up
+- [X] Add a bitmap font system as it's more efficient and customizable than the PinkFox.UI font system.
+- [X] Modify the engine to use embedded resources as opposed to loading external files.
+- [X] Add more functionality to the text UI system and optimize it.
+- [X] Make the animation system more user friendly.
+- [ ] Add support for loading external files if needed.
 - [ ] Implement simple UI element interfaces to allow for flexible UI creation and implement a couple of basic types such as labels, buttons, and checkboxes
 - [ ] Implement a basic particle system
 - [ ] Create a few basic sample projects to showcase different features

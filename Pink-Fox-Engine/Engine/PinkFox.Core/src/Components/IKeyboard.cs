@@ -4,6 +4,8 @@ namespace PinkFox.Core.Components;
 
 public interface IKeyboard
 {
+    bool AreAnyKeysHeld { get; }
+    
     bool IsKeyDown(SDL_Keycode keycode);
     bool IsKeyUp(SDL_Keycode key);
     bool IsKeyHeld(SDL_Keycode key);

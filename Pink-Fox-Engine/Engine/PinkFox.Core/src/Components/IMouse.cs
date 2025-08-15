@@ -6,6 +6,7 @@ namespace PinkFox.Core.Components;
 
 public interface IMouse
 {
+    bool AreAnyButtonsHeld { get; }
     Vector2 Position { get; set; }
 
     bool IsButtonDown(SDL_MouseButtonFlags button);

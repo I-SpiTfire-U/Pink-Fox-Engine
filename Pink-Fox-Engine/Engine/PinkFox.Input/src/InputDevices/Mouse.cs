@@ -1,17 +1,17 @@
 using System.Numerics;
 using PinkFox.Core.Components;
-using PinkFox.Core.Collisions;
 using SDL;
 
 namespace PinkFox.Input.InputDevices;
 
 public class Mouse : IMouse
 {
+    public bool AreAnyButtonsHeld => _ButtonsHeld.Count > 0;
+    public Vector2 Position { get; set; }
+    
     private readonly HashSet<SDL_MouseButtonFlags> _ButtonsDown = [];
     private readonly HashSet<SDL_MouseButtonFlags> _ButtonsUp = [];
     private readonly HashSet<SDL_MouseButtonFlags> _ButtonsHeld = [];
-
-    public Vector2 Position { get; set; }
 
     public void ProcessEvent(SDL_Event sdlEvent)
     {

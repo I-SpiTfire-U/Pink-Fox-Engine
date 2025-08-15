@@ -5,6 +5,8 @@ namespace PinkFox.Input.InputDevices;
 
 public class Keyboard : IKeyboard
 {
+    public bool AreAnyKeysHeld => _KeysHeld.Count > 0;
+
     private readonly HashSet<SDL_Keycode> _KeysDown = [];
     private readonly HashSet<SDL_Keycode> _KeysUp = [];
     private readonly HashSet<SDL_Keycode> _KeysHeld = [];
