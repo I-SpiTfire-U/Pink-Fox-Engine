@@ -1,16 +1,21 @@
-# Pink Fox Game Engine
+# Pink Fox Engine
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub views](https://komarev.com/ghpvc/?username=I-SpiTfire-U&label=Views)](https://github.com/I-SpiTfire-U)
 [![Author](https://img.shields.io/badge/Author-I--SpiTfire--U-181717?logo=github)](https://github.com/I-SpiTfire-U)
 
-> A simple lightweight game engine built with C# and SDL3.
+> The Pink Fox Engine is a lightweight, SDL3-powered game engine written in C# for creating 2D games with minimal setup and maximum flexibility.
 
 ## Background
 
 The Pink Fox Engine is a hobby project that I'm putting together as a way to learn more about game development and how different things work under the hood in real engines. I thought a game engine would be an intriguing project to create as a way of showcasing my ability to code but also as a tool that could actually be used realistically.
 
 Despite the Pink Fox Engine being a hobby project, I do hope to develop it to a point that it can be used to make a fully functioning game, as I've always wanted to have my own game engine to use for my future game projects and to share with others!
+
+## Is It Ready For Use?
+
+Yes, but it's still evolving. The core systems are functional and you can make games with it in its current state. However, features are still being added over time, so expect changes.
+I’d love to see what people create with the engine, and I welcome any feedback or criticism that comes with that.
 
 ## To-Do List
 
@@ -32,10 +37,11 @@ Despite the Pink Fox Engine being a hobby project, I do hope to develop it to a 
 - [X] Add more functionality to the text UI system and optimize it.
 - [X] Make the animation system more user friendly.
 - [ ] Add support for loading external files if needed.
-- [ ] Implement simple UI element interfaces to allow for flexible UI creation and implement a couple of basic types such as labels, buttons, and checkboxes
-- [ ] Implement a basic particle system
-- [ ] Create a few basic sample projects to showcase different features
-- [ ] Add more quality of life features to specific parts of the engine to make the developer experience more enjoyable
+- [ ] Implement simple UI element interfaces to allow for flexible UI creation and implement a couple of basic types such as labels, buttons, and checkboxes.
+- [ ] Implement a basic particle system.
+- [ ] Create a few basic sample projects to showcase different features.
+- [ ] Add more quality of life features to specific parts of the engine to make the developer experience more enjoyable.
+- [ ] Optimize more where possible.
 
 ## Creating and Running a Game
 
