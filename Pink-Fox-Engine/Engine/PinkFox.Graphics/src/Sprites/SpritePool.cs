@@ -1,5 +1,3 @@
-using PinkFox.Core.Scenes;
-
 namespace PinkFox.Graphics.Sprites;
 
 public class SpritePool

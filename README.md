@@ -36,13 +36,22 @@ I’d love to see what people create with the engine, and I welcome any feedback
 - [X] Modify the engine to use embedded resources as opposed to loading external files.
 - [X] Add more functionality to the text UI system and optimize it.
 - [X] Make the animation system more user friendly.
-- [ ] Add support for loading external files if needed.
+- [X] Multi-Window support.
+- [ ] Multi-Threading for improved performance with multiple windows.
+- [X] Add support for loading non-embedded resources if needed.
 - [ ] Implement simple UI element interfaces to allow for flexible UI creation and implement a couple of basic types such as labels, buttons, and checkboxes.
 - [ ] Implement a basic particle system.
 - [ ] Create a few basic sample projects to showcase different features.
 - [ ] Add more quality of life features to specific parts of the engine to make the developer experience more enjoyable.
 - [ ] Optimize more where possible.
 - [ ] Add documentation comments.
+- [ ] Improve and optimize input system more.
+- [ ] Add built-in functionality for converting font files to bitmap fonts so that developers don't have to use external tools
+to do so.
+- [ ] Add SAT collision support on top of the basic collision system that already exists.
+- [ ] Implement more debugging/crash report features including debug messages that draw to the window.
+- [ ] Separate module concerns better and make specific sections of the engine more modular.
+- [ ] Get an actual logo created for the engine.
 
 ## Creating and Running a Game
 
@@ -71,22 +80,23 @@ public class Program
 {
     public static void Main()
     {
-        const int InitialWindowWidth = 800;
-        const int InitialWindowHeight = 600;
-
         ResourceManager.LoadResources();
 
+        const int WindowWidth = 1600;
+        const int WindowHeight = 900;
+
+        Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
+        mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));
+        mainWindow.Scenes.PushScene("MainScene");
+
         using Engine engine = new();
-        engine.InitializeWindowAndRenderer("My Game", null, InitialWindowWidth, InitialWindowHeight);
+        engine.Initialize();
 
-        // engine.SetInputManager(new PinkFox.Input.InputManager());
-        // engine.SetAudioManager(new PinkFox.Audio.AudioManager());
-        // engine.SetVirtualRenderer(new PinkFox.Graphics.VirtualRenderer());
+        engine.AddWindow(mainWindow);
 
-        engine.SetRenderClearColor(100, 149, 237);
-
-        SceneManager.RegisterScene("Main Scene", new Scene(engine));
-        SceneManager.PushScene("Main Scene");
+        engine.FPSIsLimited = true;
+        engine.SetTargetFPS(60);
+        engine.SetFixedUPS(60);
 
         engine.Run();
     }
@@ -99,13 +109,14 @@ public class Program
 public class Scene : IScene, IDisposable
 {
     public bool HasBeenLoaded { get; set; }
-    protected readonly Engine Engine;
+    protected readonly Window Window;
+    protected Renderer Renderer => Window.Renderer!;
     
     private bool _Disposed;
 
-    public unsafe Scene(Engine engine)
+    public Scene(Window window)
     {
-        Engine = engine;
+        Window = window;
     }
 
     public void LoadContent() { }
@@ -114,7 +125,7 @@ public class Scene : IScene, IDisposable
 
     public void FixedUpdate(float fixedUpdateInterval) { }
 
-    public unsafe void Draw(SDL_Renderer* renderer) { }
+    public void Render(float deltaTime) { }
 
     public void OnWindowResize(int windowWidth, int windowHeight) { }
 

@@ -1,34 +1,41 @@
-using SDL;
+using PinkFox.Core.Debugging;
 
 namespace PinkFox.Core.Scenes;
 
-public static class SceneManager
+public class SceneManager
 {
-    private static readonly Dictionary<string, IScene> _Scenes = [];
-    private static readonly Stack<IScene> _SceneStack = new();
+    private readonly Stack<IScene> _SceneStack = new();
+    private readonly Dictionary<string, IScene> _Scenes = [];
 
-    public static void RegisterScene(string name, IScene scene)
+    public void RegisterScene(string name, IScene scene)
     {
-        if (!_Scenes.ContainsKey(name))
+        if (_Scenes.ContainsKey(name))
         {
-            _Scenes[name] = scene;
+            Terminal.LogMessage(LogLevel.Warning, $"A scene with the name '{name}' already exists, skipping");
+            return;
         }
+        _Scenes[name] = scene;
+        Terminal.LogMessage(LogLevel.Success, $"The scene '{name}' has been registered");
     }
 
-    public static void UnregisterScene(string name)
-    {
-        if (_Scenes.TryGetValue(name, out var scene))
-        {
-            scene.Dispose();
-            _Scenes.Remove(name);
-        }
-    }
-
-    public static void SwitchToScene(string name, bool disposeCurrent = true)
+    public void UnregisterScene(string name)
     {
         if (!_Scenes.TryGetValue(name, out IScene? scene))
         {
-            throw new ArgumentException($"Scene '{name}' not registered.");
+            Terminal.LogMessage(LogLevel.Warning, $"A scene with the name '{name}' is not registered, skipping");
+            return;
+        }
+        scene.Dispose();
+        _Scenes.Remove(name);
+        Terminal.LogMessage(LogLevel.Success, $"The scene '{name}' has been unregistered");
+    }
+
+    public void SwitchToScene(string name, bool disposeCurrent = true)
+    {
+        if (!_Scenes.TryGetValue(name, out IScene? scene))
+        {
+            Terminal.LogMessage(LogLevel.Error, $"The scene '{name}' is not registered");
+            throw new Exception();
         }
 
         if (_SceneStack.Count > 0)
@@ -41,19 +48,19 @@ public static class SceneManager
         }
 
         _SceneStack.Push(scene);
-        
+
         if (!scene.HasBeenLoaded)
         {
             scene.LoadContent();
         }
     }
 
-    public static void PushScene(string name)
+    public void PushScene(string name)
     {
         if (!_Scenes.TryGetValue(name, out IScene? scene))
         {
-            Console.WriteLine($"[SceneManager] Scene '{name}' not found.");
-            return;
+            Terminal.LogMessage(LogLevel.Error, $"The scene '{name}' is not registered");
+            throw new Exception();
         }
         
         _SceneStack.Push(scene);
@@ -64,7 +71,7 @@ public static class SceneManager
         }
     }
 
-    public static void PopScene(bool dispose = true)
+    public void PopScene(bool dispose = true)
     {
         if (_SceneStack.Count == 0)
         {
@@ -79,36 +86,37 @@ public static class SceneManager
         }
     }
 
-    public static IScene? GetActiveScene()
+    public IScene? GetActiveScene()
     {
-        return _SceneStack.TryPeek(out var scene) ? scene : null;
+        return _SceneStack.TryPeek(out IScene? scene) ? scene : null;
     }
 
-    public static void Update(float deltaTime)
+    public IScene? GetScene(string name)
     {
-        if (_SceneStack.TryPeek(out IScene? scene))
+        if (!_Scenes.TryGetValue(name, out IScene? scene))
         {
-            scene.Update(deltaTime);
+            Terminal.LogMessage(LogLevel.Error, $"The scene '{name}' is not registered");
+            return null;
         }
+        return scene;
     }
 
-    public static void FixedUpdate(float fixedUpdateInterval)
+    public void Update(float deltaTime)
     {
-        if (_SceneStack.TryPeek(out IScene? scene))
-        {
-            scene.FixedUpdate(fixedUpdateInterval);
-        }
+        GetActiveScene()?.Update(deltaTime);
     }
 
-    public static unsafe void Draw(SDL_Renderer* renderer)
+    public void FixedUpdate(float fixedUpdateInterval)
     {
-        if (_SceneStack.TryPeek(out IScene? scene))
-        {
-            scene.Draw(renderer);
-        }
+        GetActiveScene()?.FixedUpdate(fixedUpdateInterval);
     }
 
-    public static void ClearAllScenes()
+    public unsafe void Render(float deltaTime)
+    {
+        GetActiveScene()?.Render(deltaTime);
+    }
+
+    public void ClearAllScenes()
     {
         while (_SceneStack.Count > 0)
         {

@@ -28,7 +28,7 @@ public class Label : IDisposable
     private string? _FullText;
     private int _CurrentCharCount;
     private float _TimeSinceLastChar;
-    private float _CharRevealInterval = 0.05f; // seconds per char
+    private float _CharRevealInterval = 0.05f;
     private float _ShakeIntensity = 0f;
     private float _ShakeDuration = 0f;
     private float _ShakeTimer = 0f;

@@ -1,6 +1,6 @@
 using System.Numerics;
-using PinkFox.Core.Collisions;
-using PinkFox.Core.Components;
+using PinkFox.Core.Modules.Graphics;
+using PinkFox.Core.Types;
 using PinkFox.Graphics.Rendering;
 using SDL;
 
@@ -21,34 +21,25 @@ public interface ISprite2D : IDisposable
     Vector2 TextureSize { get; }
 
     /// <summary>Optional source rectangle from the texture to render.</summary>
-    SDL_FRect SourceRect { get; }
+    FRect SourceRect { get; }
 
     /// <summary>Position of the sprite in world space.</summary>
-    Vector2 Position { get; set; }
-
-    /// <summary>Origin point used for rotation and positioning, relative to sprite bounds.</summary>
-    Vector2 Origin { get; set; }
+    Vector2 Position { get; }
 
     /// <summary>Scale of the sprite.</summary>
-    Vector2 Scale { get; set; }
+    Vector2 Scale { get; }
 
     /// <summary>Rotation angle in radians.</summary>
-    double Rotation { get; set; }
+    double Rotation { get; }
 
     /// <summary>Flipping mode for sprite rendering.</summary>
-    SDL_FlipMode FlipMode { get; set; }
+    SDL_FlipMode FlipMode { get; }
 
     /// <summary>Rendering layer / draw order.</summary>
-    public int Layer { get; set; }
+    public int Layer { get; }
 
     /// <summary>Visibility flag indicating if the sprite should be drawn.</summary>
-    bool IsVisible { get; set; }
-
-    /// <summary>Center position of the sprite.</summary>
-    Vector2 Center { get; }
-
-    /// <summary>Bounding collider for the sprite.</summary>
-    ICollider Collider { get; }
+    bool IsVisible { get; }
 
     /// <summary>Rotation angle in degrees.</summary>
     double RotationDegrees { get; }
@@ -58,5 +49,5 @@ public interface ISprite2D : IDisposable
     /// </summary>
     /// <param name="renderer">Pointer to the SDL renderer.</param>
     /// <param name="camera2D">Optional camera for coordinate transformations.</param>
-    unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null);
+    unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null);
 }

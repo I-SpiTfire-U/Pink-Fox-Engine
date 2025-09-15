@@ -1,7 +1,6 @@
 using System.Numerics;
 using PinkFox.Core.Collisions;
-using PinkFox.Core.Components;
-using PinkFox.Core.Scenes;
+using PinkFox.Core.Modules.Graphics;
 using PinkFox.Graphics.Sprites;
 
 namespace PinkFox.Graphics.Cameras;
@@ -73,16 +72,15 @@ public class Camera2D : ICamera2D
         return Matrix3x2.CreateTranslation(-Position) * Matrix3x2.CreateScale(Zoom) * Matrix3x2.CreateTranslation(ViewWidth / 2f, ViewHeight / 2f);
     }
 
-    public BoxCollider GetViewBounds()
+    public ICollider2D GetViewBounds()
     {
-        float viewWidth = ViewWidth / Zoom;
-        float viewHeight = ViewHeight / Zoom;
-
-        return new BoxCollider(Position, new Vector2(viewWidth, viewHeight));
+        Vector2 viewScale = new(ViewWidth / Zoom, ViewHeight / Zoom);
+        return new RectCollider2D(Position, viewScale);
     }
 
     public bool SpriteIsInView(ISprite2D sprite)
     {
-        return GetViewBounds().IsCollidingWith(sprite.Collider);
+        RectCollider2D spriteCollider = new(sprite.Position, sprite.Scale);
+        return GetViewBounds().IsCollidingWith(spriteCollider);
     }
 }

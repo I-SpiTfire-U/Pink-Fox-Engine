@@ -1,246 +1,176 @@
-using System.Numerics;
-using PinkFox.Core.Components;
 using PinkFox.Core.Scenes;
+using PinkFox.Core.Types;
 using SDL;
 
 namespace PinkFox.Core;
 
 public sealed class Engine : IDisposable
 {
-    private int _TargetFPS = 60;
-    private int _FixedUPS = 60;
-    private float TargetFrameTime => 1.0f / _TargetFPS;
-    private float FixedUpdateInterval => 1.0f / _FixedUPS;
-    private bool _EnableFPSLimit = false;
-    public void EnableFPSLimit(bool enable) => _EnableFPSLimit = enable;
+    public bool FPSIsLimited;
+    public int TargetFramesPerSecond { get; private set; }
+    public int FixedUpdatesPerSecond { get; private set; }
+    private readonly List<Window> _Windows = [];
+    private readonly List<Window> _WindowsToRemove = [];
 
-    private bool _Running = true;
-    private ulong _LastTicks;
+    private float TargetFrameTime;
+    private float FixedUpdateInterval;
+
+    private bool _EngineIsRunning = true;
     private bool _Disposed;
-    private bool _FirstFrame = true;
 
-    private unsafe SDL_Window* _Window;
-    private unsafe SDL_Renderer* _Renderer;
-    public int WindowWidth { get; private set; }
-    public int WindowHeight { get; private set; }
-    public Vector2 WindowCenter => new(WindowWidth / 2, WindowHeight / 2);
-    private string _WindowTitle = string.Empty;
+    public event Action<SDL_Event>? SdlPollEvent;
+    public event Action? WindowSizeChangedEvent;
 
-    public unsafe SDL_Renderer* Renderer => _Renderer;
-
-    private IInputManager? _InputManager = null;
-    private IAudioManager? _AudioManager = null;
-    private IVirtualRenderer? _VirtualRenderer = null;
-    private SDL_WindowFlags _WindowFlags;
-    private SDL_Color _ClearColor = new()
+    public void Initialize()
     {
-        r = 100,
-        g = 149,
-        b = 237,
-        a = 255
-    };
-
-    public IInputManager InputManager => _InputManager ?? throw new InvalidOperationException("No input manager available");
-    public IAudioManager AudioManager => _AudioManager ?? throw new InvalidOperationException("No audio manager available");
-    public IVirtualRenderer VirtualRenderer => _VirtualRenderer ?? throw new InvalidOperationException("No virtual renderer available");
-
-    public void SetTargetFPS(int fps) => _TargetFPS = fps;
-    public void SetFixedUPS(int ups) => _FixedUPS = ups;
-    public void Stop() => _Running = false;
-
-    public void SetInputManager(IInputManager inputManager) => _InputManager = inputManager;
-    public void SetAudioManager(IAudioManager audioManager)
-    {
-        _AudioManager = audioManager;
-        _AudioManager.Init();
-    }
-    public void SetVirtualRenderer(IVirtualRenderer virtualRenderer)
-    {
-        _VirtualRenderer = virtualRenderer;
-        _VirtualRenderer.ClearColor = _ClearColor;
-    }
-    public void SetWindowFlags(SDL_WindowFlags windowFlags) => _WindowFlags = windowFlags;
-
-    public unsafe void SetRenderClearColor(byte r, byte g, byte b)
-    {
-        _ClearColor = new()
-        {
-            r = r,
-            g = g,
-            b = b,
-            a = 255
-        };
-
-        if (_VirtualRenderer is not null)
-        {
-            _VirtualRenderer.ClearColor = _ClearColor;
-        }
-
-        SDL3.SDL_SetRenderDrawColor(_Renderer, _ClearColor.r, _ClearColor.g, _ClearColor.b, _ClearColor.a);
-    }
-
-    public unsafe void SetRenderDrawColor(SDL_Color color)
-    {
-        SDL3.SDL_SetRenderDrawColor(_Renderer, color.r, color.g, color.b, color.a);
-    }
-
-    public unsafe void ToggleFullscreen()
-    {
-        SDL_WindowFlags flags = SDL3.SDL_GetWindowFlags(_Window);
-        bool isFullscreen = (flags & SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0;
-
-        bool result = SDL3.SDL_SetWindowFullscreen(_Window, !isFullscreen);
-        if (!result)
-        {
-            Console.WriteLine($"Failed to set window mode: {SDL3.SDL_GetError()}");
-        }
-    }
-
-    public unsafe void InitializeWindowAndRenderer(string windowTitle, string? iconName, int windowWidth, int windowHeight)
-    {
-        _WindowTitle = windowTitle;
-        WindowWidth = windowWidth;
-        WindowHeight = windowHeight;
-        _LastTicks = SDL3.SDL_GetTicks();
-
-        SDL_InitFlags initFlags = SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_AUDIO | SDL_InitFlags.SDL_INIT_GAMEPAD | SDL_InitFlags.SDL_INIT_JOYSTICK;
-
-        if (!SDL3.SDL_Init(initFlags))
-        {
-            throw new Exception($"SDL could not initialize: {SDL3.SDL_GetError()}");
-        }
-
-        _Window = SDL3.SDL_CreateWindow(_WindowTitle, WindowWidth, WindowHeight, _WindowFlags);
-        if (_Window is null)
-        {
-            throw new Exception($"Failed to create window: {SDL3.SDL_GetError()}");
-        }
-
-        _Renderer = SDL3.SDL_CreateRenderer(_Window, (byte*)null);
-        if (_Renderer is null)
-        {
-            throw new Exception($"Failed to create renderer: {SDL3.SDL_GetError()}");
-        }
-
-        if (!string.IsNullOrEmpty(iconName))
-        {
-            SetWindowIcon(iconName);
-        }
-
+        SdlInitialization.TryInitializeSdl(SDL_InitFlags.SDL_INIT_VIDEO |
+                                           SDL_InitFlags.SDL_INIT_AUDIO |
+                                           SDL_InitFlags.SDL_INIT_GAMEPAD |
+                                           SDL_InitFlags.SDL_INIT_JOYSTICK);
+        SdlInitialization.TryInitializeMix(SDL3_mixer.MIX_INIT_MP3 |
+                                           SDL3_mixer.MIX_INIT_OGG |
+                                           SDL3_mixer.MIX_INIT_WAVPACK);
         SDL3_ttf.TTF_Init();
+    }
+
+    public void AddWindow(Window window)
+    {
+        _Windows.Add(window);
+    }
+
+    public void SetTargetFPS(int fps)
+    {
+        TargetFramesPerSecond = fps;
+        TargetFrameTime = 1.0f / TargetFramesPerSecond;
+    }
+
+    public void SetFixedUPS(int ups)
+    {
+        FixedUpdatesPerSecond = ups;
+        FixedUpdateInterval = 1.0f / FixedUpdatesPerSecond;
+    }
+
+    public void Exit()
+    {
+        _EngineIsRunning = false;
     }
 
     public unsafe void Run()
     {
         float accumulator = 0;
-        while (_Running)
+        ulong lastTicks = SDL3.SDL_GetTicks();
+
+        while (_EngineIsRunning && _Windows.Count > 0)
         {
-            ulong nowTicks = SDL3.SDL_GetTicks();
-            float deltaTime = (nowTicks - _LastTicks) / 1000f;
-
-            _LastTicks = nowTicks;
-            deltaTime = MathF.Min(deltaTime, 0.05f);
-
+            ulong currentTicks = SDL3.SDL_GetTicks();
+            float deltaTime = MathF.Min((currentTicks - lastTicks) / 1000f, 0.05f);
+            lastTicks = currentTicks;
             accumulator = MathF.Min(accumulator + deltaTime, 0.05f);
 
-            SDL_Event sdlEvent;
-            while (SDL3.SDL_PollEvent(&sdlEvent))
+            ProcessSdlEvents();
+
+            foreach (Window window in _Windows)
             {
-                _InputManager?.ProcessEvent(sdlEvent);
-
-                SDL_EventType eventType = sdlEvent.Type;
-                switch (eventType)
-                {
-                    case SDL_EventType.SDL_EVENT_QUIT:
-                        _Running = false;
-                        return;
-
-                    case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
-                        HandleWindowResize(sdlEvent.window.data1, sdlEvent.window.data2);
-                        break;
-                }
+                Update(deltaTime, ref accumulator, window);
+                Render(deltaTime, window);
             }
 
-            if (_FirstFrame)
+            foreach (Window window in _WindowsToRemove)
             {
-                _FirstFrame = false;
-                continue;
+                window.Dispose();
+                _Windows.Remove(window);
             }
+            _WindowsToRemove.Clear();
 
-            while (accumulator >= FixedUpdateInterval)
-            {
-                SceneManager.FixedUpdate(FixedUpdateInterval);
-                accumulator -= FixedUpdateInterval;
-            }
-
-            SceneManager.Update(deltaTime);
-
-            if (_VirtualRenderer is not null)
-            {
-                _VirtualRenderer.Begin(_Renderer);
-                SceneManager.Draw(_Renderer);
-                _VirtualRenderer.End(_Renderer);
-            }
-            else
-            {
-                SDL3.SDL_RenderClear(_Renderer);
-                SceneManager.Draw(_Renderer);
-            }
-
-            SDL3.SDL_RenderPresent(_Renderer);
-
-            _InputManager?.Clear();
-
-            if (_EnableFPSLimit)
-            {
-                float frameEnd = SDL3.SDL_GetTicks() - nowTicks;
-                float delay = TargetFrameTime * 1000 - frameEnd;
-                if (delay > 0f)
-                {
-                    SDL3.SDL_Delay((uint)delay);
-                }
-            }
+            TryLimitFps(currentTicks);
         }
 
         Dispose();
     }
 
-    public void SetWindowSize(int width, int height)
+    private unsafe void ProcessSdlEvents()
     {
-        HandleWindowResize(width, height);
+        SDL_Event sdlEvent;
+
+        while (SDL3.SDL_PollEvent(&sdlEvent))
+        {
+            SDL_Event sdlEventCopy = sdlEvent;
+            SdlPollEvent?.Invoke(sdlEventCopy);
+
+            switch (sdlEvent.Type)
+            {
+                case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+                    Window? closedWindow = _Windows.FirstOrDefault(w => w.WindowId == sdlEventCopy.window.windowID);
+                    if (closedWindow is not null)
+                    {
+                        _WindowsToRemove.Add(closedWindow);
+                    }
+                    break;
+
+                case SDL_EventType.SDL_EVENT_QUIT:
+                    Exit();
+                    break;
+
+                case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
+                    Window? resizedWindow = _Windows.FirstOrDefault(w => w.WindowId == sdlEventCopy.window.windowID);
+                    if (resizedWindow is not null)
+                    {
+                        resizedWindow.SetSize(sdlEventCopy.window.data1, sdlEventCopy.window.data2);
+                        WindowSizeChangedEvent?.Invoke();
+                    }
+                    break;
+            }
+        }
     }
 
-    private unsafe void HandleWindowResize(int width, int height)
+    private void Update(float deltaTime, ref float accumulator, Window window)
     {
-        SDL3.SDL_SetWindowSize(_Window, width, height);
-
-        WindowWidth = width;
-        WindowHeight = height;
-
-        SDL_Rect rect = new()
+        while (accumulator >= FixedUpdateInterval)
         {
-            x = 0,
-            y = 0,
-            w = WindowWidth,
-            h = WindowHeight
-        };
-
-        SDL3.SDL_SetRenderViewport(_Renderer, &rect);
-        SceneManager.GetActiveScene()?.OnWindowResize(width, height);
-    }
-
-    private unsafe void SetWindowIcon(string resourceName)
-    {
-        SDL_Surface* surface = ResourceManager.CreateSurfaceFromResource(resourceName);
-        if (surface is null)
-        {
-            Console.WriteLine($"Failed to load icon: {SDL3.SDL_GetError()}");
-            return;
+            window.Scenes.FixedUpdate(FixedUpdateInterval);
+            accumulator -= FixedUpdateInterval;
         }
 
-        SDL3.SDL_SetWindowIcon(_Window, surface);
-        SDL3.SDL_free(surface);
+        window.Scenes.Update(deltaTime);
+    }
 
+    private unsafe void Render(float deltaTime, Window window)
+    {
+        if (window.Renderer is null)
+        {
+            return;
+        }
+        
+        if (window.Renderer.VirtualRenderer is null)
+        {
+            SDL3.SDL_SetRenderDrawColor(window.Renderer, window.Renderer.ClearColor.r, window.Renderer.ClearColor.g, window.Renderer.ClearColor.b, window.Renderer.ClearColor.a);
+            SDL3.SDL_RenderClear(window.Renderer);
+            window.Scenes.Render(deltaTime);
+        }
+        else
+        {
+            window.Renderer.BeginVirtualRenderer();
+            window.Scenes.Render(deltaTime);
+            window.Renderer.EndVirtualRenderer();
+        }
+        
+        SDL3.SDL_RenderPresent(window.Renderer);
+    }
+
+    private void TryLimitFps(ulong currentTicks)
+    {
+        if (!FPSIsLimited)
+        {
+            return;
+        }
+        
+        float frameTime = SDL3.SDL_GetTicks() - currentTicks;
+        float delay = TargetFrameTime * 1000 - frameTime;
+
+        if (delay > 0f)
+        {
+            SDL3.SDL_Delay((uint)delay);
+        }
     }
 
     public void Dispose()
@@ -249,7 +179,7 @@ public sealed class Engine : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void Dispose(bool disposing)
+    private unsafe void Dispose(bool disposing)
     {
         if (_Disposed)
         {
@@ -258,22 +188,12 @@ public sealed class Engine : IDisposable
 
         if (disposing)
         {
-            unsafe
+            foreach (Window window in _Windows)
             {
-                if (_Renderer is not null)
-                {
-                    SDL3.SDL_DestroyRenderer(_Renderer);
-                }
-
-                if (_Window is not null)
-                {
-                    SDL3.SDL_DestroyWindow(_Window);
-                }
+                window.Dispose();
             }
+            _Windows.Clear();
 
-            SceneManager.ClearAllScenes();
-            _AudioManager?.Shutdown();
-            _InputManager?.Dispose();
             SDL3_ttf.TTF_Quit();
             SDL3.SDL_Quit();
         }

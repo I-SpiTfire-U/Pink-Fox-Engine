@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using PinkFox.Core.Types;
 using SDL;
 
 namespace PinkFox.Graphics.Rendering;
@@ -6,7 +7,7 @@ namespace PinkFox.Graphics.Rendering;
 public static class TextureFactory
 {
 
-    public static unsafe Texture2D CreateRectangle(SDL_Renderer* renderer, int width, int height, SDL_Color color)
+    public static unsafe Texture2D CreateRectangle(Renderer renderer, int width, int height, SDL_Color color)
     {
         return CreateTextureFromGenerator(renderer, width, height, (ptr, offset, x, y) =>
         {
@@ -14,7 +15,7 @@ public static class TextureFactory
         });
     }
 
-    public static unsafe Texture2D CreateRectangleOutline(SDL_Renderer* renderer, int width, int height, int outlineThickness, SDL_Color outlineColor)
+    public static unsafe Texture2D CreateRectangleOutline(Renderer renderer, int width, int height, int outlineThickness, SDL_Color outlineColor)
     {
         return CreateTextureFromGenerator(renderer, width, height, (ptr, offset, x, y) =>
         {
@@ -32,7 +33,7 @@ public static class TextureFactory
         });
     }
 
-    public static unsafe Texture2D CreateRectangleGradient(SDL_Renderer* renderer, int width, int height, SDL_Color color)
+    public static unsafe Texture2D CreateRectangleGradient(Renderer renderer, int width, int height, SDL_Color color)
     {
         return CreateTextureFromGenerator(renderer, width, height, (ptr, offset, x, y) =>
         {
@@ -43,7 +44,7 @@ public static class TextureFactory
         });
     }
 
-    public static unsafe Texture2D CreateCircle(SDL_Renderer* renderer, int width, int height, SDL_Color color)
+    public static unsafe Texture2D CreateCircle(Renderer renderer, int width, int height, SDL_Color color)
     {
         float radiusX = width / 2f;
         float radiusY = height / 2f;
@@ -67,7 +68,7 @@ public static class TextureFactory
         });
     }
 
-    public static unsafe Texture2D CreateCircleOutline(SDL_Renderer* renderer, int width, int height, int outlineThickness, SDL_Color outlineColor)
+    public static unsafe Texture2D CreateCircleOutline(Renderer renderer, int width, int height, int outlineThickness, SDL_Color outlineColor)
     {
         float radiusX = width / 2f;
         float radiusY = height / 2f;
@@ -94,7 +95,7 @@ public static class TextureFactory
         });
     }
 
-    public static unsafe Texture2D CreateCircleGradient(SDL_Renderer* renderer, int width, int height, SDL_Color color)
+    public static unsafe Texture2D CreateCircleGradient(Renderer renderer, int width, int height, SDL_Color color)
     {
         float radiusX = width / 2f;
         float radiusY = height / 2f;
@@ -121,9 +122,9 @@ public static class TextureFactory
         });
     }
 
-    private static unsafe Texture2D CreateTextureFromGenerator(SDL_Renderer* renderer, int width, int height, PixelSetter pixelSetter)
+    private static unsafe Texture2D CreateTextureFromGenerator(Renderer renderer, int width, int height, PixelSetter pixelSetter)
     {
-        const int bpp = 4; // RGBA8888
+        const int bpp = 4;
         int pitch = width * bpp;
         byte* ptr = (byte*)Marshal.AllocHGlobal(height * pitch);
 
@@ -146,7 +147,7 @@ public static class TextureFactory
         }
     }
 
-    public static unsafe Texture2D CreateRightAngledTriangle(SDL_Renderer* renderer, int width, int height, SDL_Color color)
+    public static unsafe Texture2D CreateRightAngledTriangle(Renderer renderer, int width, int height, SDL_Color color)
     {
         return CreateTextureFromGenerator(renderer, width, height, (ptr, offset, x, y) =>
         {
@@ -161,7 +162,7 @@ public static class TextureFactory
         });
     }
 
-    public static unsafe Texture2D CreateEquilateralTriangle(SDL_Renderer* renderer, int width, int height, SDL_Color color)
+    public static unsafe Texture2D CreateEquilateralTriangle(Renderer renderer, int width, int height, SDL_Color color)
     {
         float halfWidth = width / 2f;
 
@@ -185,7 +186,7 @@ public static class TextureFactory
 
     private unsafe delegate void PixelSetter(byte* ptr, int offset, int x, int y);
 
-    private static unsafe Texture2D FromPixels(SDL_Renderer* renderer, nint pixels, int width, int height, SDL_PixelFormat format)
+    private static unsafe Texture2D FromPixels(Renderer renderer, nint pixels, int width, int height, SDL_PixelFormat format)
     {
         int pitch = width * SDL3.SDL_BYTESPERPIXEL(format);
         SDL_Surface* surface = SDL3.SDL_CreateSurfaceFrom(width, height, format, pixels, pitch);

@@ -1,0 +1,36 @@
+struct Game
+{
+    List: Player
+}
+
+struct Player
+{
+    Username: String
+    Is_Holding_main: bool
+    Main_Weapon: Weapon
+    Secondary_Weapon: Weapon
+
+    function Swap(wep: Weapon)
+    {
+        if Main_Weapon == wep || Secondary_Weapon == wep
+        {
+            FillAmmo()
+            return
+        }
+
+        if Is_Holding_main
+        {
+            Main_Weapon = wep
+        }
+        else
+        {
+            Secondary_Weapon = wep
+        }
+    }
+}
+
+struct Weapon
+{
+    Name: String
+    Damage: Float
+}

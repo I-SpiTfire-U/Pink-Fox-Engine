@@ -1,43 +1,49 @@
-using System.Numerics;
+using PinkFox.Core.Debugging;
+using PinkFox.Core.Types;
 using SDL;
 
 namespace PinkFox.Graphics.Rendering;
 
 public class Texture2D : IDisposable
 {
-    public unsafe SDL_Texture* TextureHandle { get; private set; }
+    public unsafe SDL_Texture* TextureHandle { get; init; }
     public float Width { get; init; }
     public float Height { get; init; }
 
     private bool _Disposed;
 
-    public unsafe Texture2D(string resourceName, SDL_Renderer* renderer)
+    public static unsafe Texture2D FromResource(string resourceName, Renderer renderer)
     {
         SDL_Surface* surface = Core.ResourceManager.CreateSurfaceFromResource(resourceName);
-        Width = surface->w;
-        Height = surface->h;
-        TextureHandle = CreateTexture(renderer, surface);
-        SDL3.SDL_DestroySurface(surface);
-        SDL3.SDL_SetTextureBlendMode(TextureHandle, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+        return new Texture2D(surface, renderer);
     }
 
-    public unsafe Texture2D(SDL_Surface* surface, SDL_Renderer* renderer)
+    public static unsafe Texture2D FromFile(string fileName, Renderer renderer)
+    {
+        SDL_Surface* surface = SDL3_image.IMG_Load(fileName);
+        return new Texture2D(surface, renderer);
+    }
+
+    public unsafe Texture2D(SDL_Surface* surface, Renderer renderer)
     {
         ThrowIfSurfaceInvalid(surface);
+
         Width = surface->w;
         Height = surface->h;
         TextureHandle = CreateTexture(renderer, surface);
-        SDL3.SDL_DestroySurface(surface);
         SDL3.SDL_SetTextureBlendMode(TextureHandle, SDL_BlendMode.SDL_BLENDMODE_BLEND);
+
+        SDL3.SDL_DestroySurface(surface);
     }
 
-    public unsafe Texture2D(SDL_Renderer* renderer, int width, int height)
+    public unsafe Texture2D(Renderer renderer, int width, int height)
     {
         TextureHandle = SDL3.SDL_CreateTexture(renderer, SDL_PixelFormat.SDL_PIXELFORMAT_RGBA8888, SDL_TextureAccess.SDL_TEXTUREACCESS_TARGET, width, height);
 
         if (TextureHandle is null)
         {
-            throw new Exception($"Failed to create render target: {SDL3.SDL_GetError()}");
+            Terminal.LogMessage(LogLevel.Error, "Failed to create render target");
+            throw new Exception(SDL3.SDL_GetError());
         }
 
         Width = width;
@@ -46,82 +52,36 @@ public class Texture2D : IDisposable
         SDL3.SDL_SetTextureBlendMode(TextureHandle, SDL_BlendMode.SDL_BLENDMODE_BLEND);
     }
 
-    public unsafe void SetAsRenderTarget(SDL_Renderer* renderer)
+    public unsafe void SetAsRenderTarget(Renderer renderer)
     {
         SDL3.SDL_SetRenderTarget(renderer, TextureHandle);
     }
 
-    public unsafe void Draw(SDL_Renderer* renderer, SDL_FRect destinationRect, SDL_FRect? sourceRect = null)
+    public unsafe void Draw(Renderer renderer, FRect? sourceRect = null, FRect? destinationRect = null, double angle = 0d, SDL_FPoint? centerPoint = null, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE)
     {
-        if (sourceRect is not null)
-        {
-            SDL_FRect sRect = sourceRect.Value;
-            SDL3.SDL_RenderTexture(renderer, TextureHandle, &sRect, &destinationRect);
-            return;
-        }
-        SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
-    }
+        SDL_FRect* dstPtr = null;
+        SDL_FRect* srcPtr = null;
+        SDL_FPoint* ctrPtr = null;
 
-    public unsafe void Draw(SDL_Renderer* renderer, float xPosition, float yPosition, float scale = 1f, SDL_FRect? sourceRect = null)
-    {
-        float width = Width;
-        float height = Height;
+        if (destinationRect.HasValue)
+        {
+            SDL_FRect dstVal = destinationRect.Value;
+            dstPtr = &dstVal;
+        }
 
         if (sourceRect.HasValue)
         {
-            width = sourceRect.Value.w;
-            height = sourceRect.Value.h;
+            SDL_FRect srcVal = sourceRect.Value;
+            srcPtr = &srcVal;
         }
 
-        width *= scale;
-        height *= scale;
-
-        SDL_FRect destinationRect = new()
+        if (centerPoint.HasValue)
         {
-            x = xPosition,
-            y = yPosition,
-            w = width,
-            h = height
-        };
-
-        if (sourceRect is not null)
-        {
-            SDL_FRect sRect = sourceRect.Value;
-            SDL3.SDL_RenderTexture(renderer, TextureHandle, &sRect, &destinationRect);
-            return;
-        }
-        SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
-    }
-
-    public unsafe void Draw(SDL_Renderer* renderer, Vector2 position, float scale = 1f, SDL_FRect? sourceRect = null)
-    {
-        float width = Width;
-        float height = Height;
-
-        if (sourceRect.HasValue)
-        {
-            width = sourceRect.Value.w;
-            height = sourceRect.Value.h;
+            SDL_FPoint ctrVal = centerPoint.Value;
+            ctrPtr = &ctrVal;
         }
 
-        width *= scale;
-        height *= scale;
-
-        SDL_FRect destinationRect = new()
-        {
-            x = position.X,
-            y = position.Y,
-            w = width,
-            h = height
-        };
-
-        if (sourceRect is not null)
-        {
-            SDL_FRect sRect = sourceRect.Value;
-            SDL3.SDL_RenderTexture(renderer, TextureHandle, &sRect, &destinationRect);
-            return;
-        }
-        SDL3.SDL_RenderTexture(renderer, TextureHandle, null, &destinationRect);
+        SDL3.SDL_RenderTextureRotated(renderer, TextureHandle, srcPtr, dstPtr, angle, ctrPtr, flipMode);
     }
 
     public void Dispose()
@@ -144,7 +104,6 @@ public class Texture2D : IDisposable
                 if (TextureHandle is not null)
                 {
                     SDL3.SDL_DestroyTexture(TextureHandle);
-                    TextureHandle = null;
                 }
             }
         }
@@ -175,7 +134,8 @@ public class Texture2D : IDisposable
     {
         if (surface is null)
         {
-            throw new Exception($"Failed to load surface: {SDL3.SDL_GetError()}");
+            Terminal.LogMessage(LogLevel.Error, "Failed to load surface");
+            throw new Exception(SDL3.SDL_GetError());
         }
     }
 
@@ -183,7 +143,8 @@ public class Texture2D : IDisposable
     {
         if (texture is null)
         {
-            throw new Exception($"Failed to create texture: {SDL3.SDL_GetError()}");
+            Terminal.LogMessage(LogLevel.Error, "Failed to create texture");
+            throw new Exception(SDL3.SDL_GetError());
         }
     }
 }

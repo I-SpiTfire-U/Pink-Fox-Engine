@@ -1,4 +1,4 @@
-using PinkFox.Core.Components;
+using PinkFox.Core.Modules.Input;
 using SDL;
 
 namespace PinkFox.Input.InputDevices;
@@ -68,7 +68,7 @@ public class Gamepad : IGamepad, IDisposable
             return 0f;
         }
 
-        short dz = _AxisDeadZones.TryGetValue(axis, out var val) ? val : DeadZone;
+        short dz = _AxisDeadZones.TryGetValue(axis, out short val) ? val : DeadZone;
         if ((rawValue > -dz) && (rawValue < dz))
         {
             return 0f;

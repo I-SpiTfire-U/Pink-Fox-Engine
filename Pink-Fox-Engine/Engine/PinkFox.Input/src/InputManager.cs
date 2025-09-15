@@ -1,6 +1,6 @@
 using PinkFox.Input.InputDevices;
-using PinkFox.Core.Components;
 using SDL;
+using PinkFox.Core.Modules.Input;
 
 namespace PinkFox.Input;
 
@@ -12,6 +12,8 @@ public class InputManager : IInputManager, IDisposable
 
     private bool _Disposed;
 
+    public InputManager() {}
+
     public void ProcessEvent(SDL_Event sdlEvent)
     {
         SDL_EventType eventType = sdlEvent.Type;
@@ -19,11 +21,11 @@ public class InputManager : IInputManager, IDisposable
         switch (eventType)
         {
             case SDL_EventType.SDL_EVENT_KEY_DOWN or SDL_EventType.SDL_EVENT_KEY_UP:
-                KeyboardEvent(eventType, sdlEvent);
+                KeyboardEvent(sdlEvent);
                 break;
 
             case SDL_EventType.SDL_EVENT_MOUSE_MOTION or SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN or SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
-                MouseEvent(eventType, sdlEvent);
+                MouseEvent(sdlEvent);
                 break;
 
             case SDL_EventType.SDL_EVENT_GAMEPAD_ADDED or SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED or SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN or SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP or SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
@@ -32,15 +34,9 @@ public class InputManager : IInputManager, IDisposable
         }
     }
 
-    private void KeyboardEvent(SDL_EventType eventType, SDL_Event sdlEvent)
-    {
-        Keyboard.ProcessEvent(sdlEvent);
-    }
+    private void KeyboardEvent(SDL_Event sdlEvent) => Keyboard.ProcessEvent(sdlEvent);
 
-    private void MouseEvent(SDL_EventType eventType, SDL_Event sdlEvent)
-    {
-        Mouse.ProcessEvent(sdlEvent);
-    }
+    private void MouseEvent(SDL_Event sdlEvent) => Mouse.ProcessEvent(sdlEvent);
 
     private unsafe void GamepadEvent(SDL_EventType eventType, SDL_Event sdlEvent)
     {
@@ -96,8 +92,9 @@ public class InputManager : IInputManager, IDisposable
 
         if (disposing)
         {
-            Clear();
             Gamepads.Dispose();
+            Mouse.Clear();
+            Keyboard.Clear();
         }
         
         _Disposed = true;

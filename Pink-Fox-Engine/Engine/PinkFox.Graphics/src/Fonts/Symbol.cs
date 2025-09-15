@@ -2,7 +2,7 @@ namespace PinkFox.Graphics.Fonts;
 
 public class Symbol
 {
-    public int Id { get; set; }       // Unicode/ASCII code
+    public int Id { get; set; }
     public int X { get; set; }
     public int Y { get; set; }
     public int Width { get; set; }

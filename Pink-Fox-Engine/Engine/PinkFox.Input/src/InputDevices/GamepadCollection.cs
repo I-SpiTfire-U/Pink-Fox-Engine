@@ -1,4 +1,4 @@
-using PinkFox.Core.Components;
+using PinkFox.Core.Modules.Input;
 using SDL;
 
 namespace PinkFox.Input.InputDevices;
@@ -93,7 +93,7 @@ public class GamepadCollection : IGamepadCollection, IDisposable
             return;
         }
 
-        if (_Gamepads.Remove(instanceId, out var gamepad))
+        if (_Gamepads.Remove(instanceId, out IGamepad? gamepad))
         {
             gamepad.Dispose();
             _GamepadOrder.Remove(instanceId);
@@ -125,7 +125,7 @@ public class GamepadCollection : IGamepadCollection, IDisposable
         _Gamepads[instanceId].ProcessEvent(sdlEvent);
     }
 
-    private IGamepad? AtIndex(int index)
+    public IGamepad? AtIndex(int index)
     {
         if (index < 0 || index >= _Gamepads.Count)
         {

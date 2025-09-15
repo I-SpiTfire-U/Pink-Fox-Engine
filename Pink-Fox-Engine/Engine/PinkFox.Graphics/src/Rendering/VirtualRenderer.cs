@@ -1,5 +1,6 @@
 using System.Numerics;
-using PinkFox.Core.Components;
+using PinkFox.Core.Modules.Graphics;
+using PinkFox.Core.Types;
 using SDL;
 
 namespace PinkFox.Graphics.Rendering;
@@ -13,7 +14,7 @@ public class VirtualRenderer : IVirtualRenderer
     public int VirtualHeight { get; init; }
     private readonly Texture2D _RenderTarget;
 
-    public unsafe VirtualRenderer(SDL_Renderer* renderer, int virtualWidth, int virtualHeight, bool useIntegerScaling = false)
+    public unsafe VirtualRenderer(Renderer renderer, int virtualWidth, int virtualHeight, bool useIntegerScaling = false)
     {
         VirtualWidth = virtualWidth;
         VirtualHeight = virtualHeight;
@@ -21,14 +22,14 @@ public class VirtualRenderer : IVirtualRenderer
         UseIntegerScaling = useIntegerScaling;
     }
 
-    public unsafe void Begin(SDL_Renderer* actualRenderer)
+    public unsafe void Begin(Renderer actualRenderer)
     {
         _RenderTarget.SetAsRenderTarget(actualRenderer);
         SDL3.SDL_SetRenderDrawColor(actualRenderer, ClearColor.r, ClearColor.g, ClearColor.b, ClearColor.a);
         SDL3.SDL_RenderClear(actualRenderer);
     }
 
-    public unsafe void End(SDL_Renderer* actualRenderer)
+    public unsafe void End(Renderer actualRenderer)
     {
         SDL3.SDL_SetRenderTarget(actualRenderer, null);
 
@@ -51,7 +52,7 @@ public class VirtualRenderer : IVirtualRenderer
         int offsetX = (winW - drawW) / 2;
         int offsetY = (winH - drawH) / 2;
 
-        SDL_FRect dest = new SDL_FRect
+        SDL_FRect dest = new()
         {
             x = offsetX,
             y = offsetY,
@@ -60,10 +61,10 @@ public class VirtualRenderer : IVirtualRenderer
         };
 
         SDL3.SDL_SetTextureScaleMode(_RenderTarget.TextureHandle, SDL_ScaleMode.SDL_SCALEMODE_NEAREST);
-        _RenderTarget.Draw(actualRenderer, dest);
+        _RenderTarget.Draw(actualRenderer, destinationRect: dest);
     }
 
-    public unsafe Vector2 WindowToVirtualCoords(SDL_Renderer* renderer, Vector2 windowPosition)
+    public unsafe Vector2 WindowToVirtualCoords(Renderer renderer, Vector2 windowPosition)
     {
         int winW = 0;
         int winH = 0;
@@ -89,7 +90,7 @@ public class VirtualRenderer : IVirtualRenderer
         return new Vector2(virtualX, virtualY);
     }
 
-    public unsafe SDL_Rect GetViewportRect(SDL_Renderer* renderer)
+    public unsafe SDL_Rect GetViewportRect(Renderer renderer)
     {
         int winW = 0, winH = 0;
         SDL3.SDL_GetRenderOutputSize(renderer, &winW, &winH);

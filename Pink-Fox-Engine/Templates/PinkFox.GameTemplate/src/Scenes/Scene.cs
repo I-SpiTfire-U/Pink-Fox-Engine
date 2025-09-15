@@ -1,19 +1,19 @@
-using PinkFox.Core;
 using PinkFox.Core.Scenes;
-using SDL;
+using PinkFox.Core.Types;
 
 namespace PinkFox.GameTemplate.Scenes;
 
 public class Scene : IScene, IDisposable
 {
     public bool HasBeenLoaded { get; set; }
-    protected readonly Engine Engine;
+    protected readonly Window Window;
+    protected Renderer Renderer => Window.Renderer!;
     
     private bool _Disposed;
 
-    public unsafe Scene(Engine engine)
+    public Scene(Window window)
     {
-        Engine = engine;
+        Window = window;
     }
 
     public void LoadContent()
@@ -34,7 +34,7 @@ public class Scene : IScene, IDisposable
 
     }
 
-    public unsafe void Draw(SDL_Renderer* renderer)
+    public void Render(float deltaTime)
     {
         // TODO: Draw game elements to the screen below:
 

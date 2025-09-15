@@ -1,5 +1,6 @@
 using System.Numerics;
-using PinkFox.Core.Components;
+using PinkFox.Core.Modules.Graphics;
+using PinkFox.Core.Types;
 using SDL;
 
 namespace PinkFox.Graphics.Fonts;
@@ -43,7 +44,6 @@ public class Label
     public void Update(float deltaTime)
     {
         UpdateTyping(deltaTime);
-
         UpdateShake(deltaTime);
     }
 
@@ -96,7 +96,7 @@ public class Label
         }
     }
 
-    public unsafe void Draw(SDL_Renderer* renderer, ICamera2D? camera2D = null, float maxWidth = float.MaxValue)
+    public unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null, float maxWidth = float.MaxValue)
     {
         if (string.IsNullOrEmpty(Text))
         {
@@ -156,7 +156,7 @@ public class Label
                 cursorX = screenPosition.X;
                 cursorY += lineHeight;
                 currentWidth = 0f;
-                previousChar = '\0'; // reset kerning on new line
+                previousChar = '\0';
             }
 
             if (c == ' ')
@@ -167,7 +167,7 @@ public class Label
                 continue;
             }
 
-            if (!_Font.Characters.TryGetValue(c, out var drawGlyph))
+            if (!_Font.Characters.TryGetValue(c, out GlyphInfo? drawGlyph))
             {
                 continue;
             }
@@ -180,15 +180,10 @@ public class Label
 
             float drawY = cursorY + baseLine + drawGlyph.YOffset * scaleWithZoom;
 
-            SDL_FRect destRect = new()
-            {
-                x = cursorX + drawGlyph.XOffset * scaleWithZoom,
-                y = drawY,
-                w = drawGlyph.SourceRect.w * scaleWithZoom,
-                h = drawGlyph.SourceRect.h * scaleWithZoom
-            };
+            Vector2 shakeOffset = GetShakeOffset();
+            FRect destRect = new(cursorX + drawGlyph.XOffset * scaleWithZoom + shakeOffset.X, drawY + shakeOffset.Y, drawGlyph.SourceRect.w * scaleWithZoom, drawGlyph.SourceRect.h * scaleWithZoom);
 
-            DrawChar(renderer, destRect, drawGlyph.SourceRect);
+            _Font.Texture.Draw(renderer, drawGlyph.SourceRect, destRect);
 
             cursorX += drawGlyph.XAdvance * scaleWithZoom;
             previousChar = c;
@@ -201,20 +196,17 @@ public class Label
         _Scale = (float)fontSize / _Font.FontData.Config.CharHeight;
     }
 
-    private unsafe void DrawChar(SDL_Renderer* renderer, SDL_FRect destinationRect, SDL_FRect sourceRect)
+    private Vector2 GetShakeOffset()
     {
-        float offsetX = 0f;
-        float offsetY = 0f;
-        if (ShakeIntensity > 0f)
+        if (ShakeIntensity <= 0f)
         {
-            offsetX = (float)(Random.Shared.NextDouble() * 2 - 1) * 2f * ShakeIntensity * _Scale;
-            offsetY = (float)(Random.Shared.NextDouble() * 2 - 1) * 2f * ShakeIntensity * _Scale;
+            return Vector2.Zero;
         }
 
-        destinationRect.x += offsetX;
-        destinationRect.y += offsetY;
+        float offsetX = (float)(Random.Shared.NextDouble() * 2 - 1) * 2f * ShakeIntensity * _Scale;
+        float offsetY = (float)(Random.Shared.NextDouble() * 2 - 1) * 2f * ShakeIntensity * _Scale;
 
-        _Font.Texture.Draw(renderer, destinationRect, sourceRect);
+        return new Vector2(offsetX, offsetY);
     }
 
     public void SetText(string text)

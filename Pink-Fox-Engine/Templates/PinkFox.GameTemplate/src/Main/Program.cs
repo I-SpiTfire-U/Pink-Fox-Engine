@@ -1,5 +1,5 @@
 using PinkFox.Core;
-using PinkFox.Core.Scenes;
+using PinkFox.Core.Types;
 using PinkFox.GameTemplate.Scenes;
 
 namespace PinkFox.GameTemplate.Main;
@@ -8,22 +8,23 @@ public class Program
 {
     public static void Main()
     {
-        const int InitialWindowWidth = 800;
-        const int InitialWindowHeight = 600;
-
         ResourceManager.LoadResources();
 
+        const int WindowWidth = 1600;
+        const int WindowHeight = 900;
+
+        Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
+        mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));
+        mainWindow.Scenes.PushScene("MainScene");
+
         using Engine engine = new();
-        engine.InitializeWindowAndRenderer("My Game", "Icons_PinkFoxIcon", InitialWindowWidth, InitialWindowHeight);
+        engine.Initialize();
 
-        // engine.SetInputManager(new PinkFox.Input.InputManager());
-        // engine.SetAudioManager(new PinkFox.Audio.AudioManager());
-        // engine.SetVirtualRenderer(new PinkFox.Graphics.VirtualRenderer());
+        engine.AddWindow(mainWindow);
 
-        engine.SetRenderClearColor(100, 149, 237);
-
-        SceneManager.RegisterScene("Main Scene", new Scene(engine));
-        SceneManager.PushScene("Main Scene");
+        engine.FPSIsLimited = true;
+        engine.SetTargetFPS(60);
+        engine.SetFixedUPS(60);
 
         engine.Run();
     }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using PinkFox.Core.Debugging;
 using SDL;
 
 namespace PinkFox.Core;
@@ -11,14 +12,24 @@ public static class ResourceManager
     {
         _ResourcesDictionary.Clear();
 
-        Assembly assembly = Assembly.GetEntryAssembly() ?? throw new Exception("Entry assembly not found");
+        Assembly? assembly = Assembly.GetEntryAssembly();
+        if (assembly is null)
+        {
+            Terminal.LogMessage(LogLevel.Error, $"Entry assembly not found");
+            throw new Exception();
+        }
 
         foreach (string resourcePath in assembly.GetManifestResourceNames())
         {
-            string name = resourcePath.Split('.')[^2];
+            string[] resourcePathSplit = resourcePath.Split('.');
+            string name = $"{resourcePathSplit[^2]}.{resourcePathSplit[^1]}";
 
-            using Stream? stream = assembly.GetManifestResourceStream(resourcePath) ?? throw new FileNotFoundException($"Embedded resource '{resourcePath}' not found.");
-
+            using Stream? stream = assembly.GetManifestResourceStream(resourcePath);
+            if (stream is null)
+            {
+                Terminal.LogMessage(LogLevel.Error, $"Embedded resource '{resourcePath}' not found");
+                throw new FileNotFoundException();
+            }
             using MemoryStream ms = new();
             stream.CopyTo(ms);
 
@@ -26,7 +37,8 @@ public static class ResourceManager
 
             if (_ResourcesDictionary.ContainsKey(name))
             {
-                throw new Exception($"Duplicate resource key detected: '{name}'");
+                Terminal.LogMessage(LogLevel.Error, $"Duplicate resource with the name '{name}' already loaded");
+                throw new Exception();
             }
 
             _ResourcesDictionary.Add(name, data);
@@ -56,7 +68,8 @@ public static class ResourceManager
             SDL_Surface* surface = SDL3_image.IMG_Load_IO(sdlIoStream, true);
             if (surface is null)
             {
-                throw new Exception($"Failed to load surface from memory: {SDL3.SDL_GetError()}");
+                Terminal.LogMessage(LogLevel.Error, "Failed to load SDL_Surface from resources");
+                throw new Exception(SDL3.SDL_GetError());
             }
 
             return surface;
@@ -73,7 +86,8 @@ public static class ResourceManager
             Mix_Chunk* chunk = SDL3_mixer.Mix_LoadWAV_IO(sdlIoStream, true);
             if (chunk is null)
             {
-                throw new Exception($"Failed to load sound chunk from memory: {SDL3.SDL_GetError()}");
+                Terminal.LogMessage(LogLevel.Error, "Failed to load Mix_Chunk from resources");
+                throw new Exception(SDL3.SDL_GetError());
             }
 
             return chunk;
@@ -90,7 +104,8 @@ public static class ResourceManager
             Mix_Music* music = SDL3_mixer.Mix_LoadMUS_IO(sdlIoStream, true);
             if (music is null)
             {
-                throw new Exception($"Failed to load music from memory: {SDL3.SDL_GetError()}");
+                Terminal.LogMessage(LogLevel.Error, "Failed to load MIX_Music from resources");
+                throw new Exception(SDL3.SDL_GetError());
             }
 
             return music;
@@ -107,7 +122,8 @@ public static class ResourceManager
             TTF_Font* font = SDL3_ttf.TTF_OpenFontIO(sdlIoStream, true, fontSize);
             if (font is null)
             {
-                throw new Exception($"Failed to load font from memory: {SDL3.SDL_GetError()}");
+                Terminal.LogMessage(LogLevel.Error, "Failed to load TTF_Font from resources");
+                throw new Exception(SDL3.SDL_GetError());
             }
 
             return font;
@@ -125,7 +141,8 @@ public static class ResourceManager
         SDL_IOStream* sdlIoStream = SDL3.SDL_IOFromConstMem(pointer, dataLength);
         if (sdlIoStream is null)
         {
-            throw new Exception($"Failed to create sdlIoStream: {SDL3.SDL_GetError()}");
+            Terminal.LogMessage(LogLevel.Error, "Failed to create SDL_IOStream");
+            throw new Exception(SDL3.SDL_GetError());
         }
         return sdlIoStream;
     }

@@ -1,4 +1,4 @@
-using PinkFox.Core.Components;
+using PinkFox.Core.Modules.Input;
 using SDL;
 
 namespace PinkFox.Input.InputDevices;

@@ -1,24 +1,26 @@
 using PinkFox.Graphics.Rendering;
-using System.Text.Json;
 using SDL;
+using PinkFox.Core.Types;
 
 namespace PinkFox.Graphics.Fonts;
 
-public class BitmapFont
+public class BitmapFont : IDisposable
 {
     public Texture2D Texture { get; init; }
     public Dictionary<char, GlyphInfo> Characters { get; init; }
     public Dictionary<(char, char), int> KerningPairs { get; init; }
     public BitmapFontData FontData { get; init; }
 
-    public float LineHeight { get; private set; } = 0;
-    public float LineSpacing { get; private set; } = 0f;
-    public int SpaceAdvance { get; private set; } = 0;
+    public float LineHeight { get; init; }
+    public float LineSpacing { get; init; }
+    public int SpaceAdvance { get; init; }
 
-    public BitmapFont(Texture2D texture, BitmapFontData data)
+    private bool _Disposed;
+
+    public BitmapFont(Renderer renderer, string textureResourceName, string fontResourceName)
     {
-        Texture = texture;
-        FontData = data;
+        Texture = Texture2D.FromResource(textureResourceName, renderer);
+        FontData = BitmapFontData.FromResource(fontResourceName);
 
         LineHeight = FontData.Config.CharHeight + FontData.Config.LineSpacing;
         if (SpaceAdvance == 0)
@@ -29,7 +31,7 @@ public class BitmapFont
         Characters = new(FontData.Symbols.Count);
         KerningPairs = new(FontData.Kerning.Count);
 
-        foreach (var symbol in FontData.Symbols)
+        foreach (Symbol symbol in FontData.Symbols)
         {
             char c = (char)symbol.Id;
             Characters[c] = new GlyphInfo
@@ -52,23 +54,37 @@ public class BitmapFont
             }
         }
 
-        foreach (var kerning in FontData.Kerning)
+        foreach (Kerning kerning in FontData.Kerning)
         {
             KerningPairs[((char)kerning.First, (char)kerning.Second)] = kerning.Amount;
         }
     }
 
-    public static BitmapFontData LoadFontDataFromJson(string resourceName)
+    public void Dispose()
     {
-        string jsonText = Core.ResourceManager.CreateTextFromResource(resourceName);
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
-        JsonSerializerOptions options = new()
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_Disposed)
         {
-            PropertyNameCaseInsensitive = true,
-        };
+            return;
+        }
 
-        BitmapFontData? fontData = JsonSerializer.Deserialize<BitmapFontData>(jsonText, options) ?? throw new Exception("Failed to deserialize BitmapFontData from JSON.");
+        if (disposing)
+        {
+            Texture.Dispose();
+            Characters.Clear();
+            KerningPairs.Clear();
+        }
 
-        return fontData;
+        _Disposed = true;
+    }
+
+    ~BitmapFont()
+    {
+        Dispose(false);
     }
 }

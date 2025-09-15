@@ -1,0 +1,16 @@
+using SDL;
+
+namespace PinkFox.Core.Modules.Input;
+
+public interface IKeyboard
+{
+    bool AreAnyKeysHeld { get; }
+    
+    bool IsKeyDown(SDL_Keycode keycode);
+    bool IsKeyUp(SDL_Keycode key);
+    bool IsKeyHeld(SDL_Keycode key);
+
+    void ProcessEvent(SDL_Event sdlEvent);
+    
+    void Clear();
+}
