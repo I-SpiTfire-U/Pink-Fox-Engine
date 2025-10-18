@@ -7,7 +7,11 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <EmbeddedResource Include="Assets\**\*" />
+        <EmbeddedResource Include="assets\**\*" />
+        <None Include="native/**/*">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+            <TargetPath>%(Filename)%(Extension)</TargetPath>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />

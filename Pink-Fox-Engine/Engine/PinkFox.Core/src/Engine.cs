@@ -18,9 +18,6 @@ public sealed class Engine : IDisposable
     private bool _EngineIsRunning = true;
     private bool _Disposed;
 
-    public event Action<SDL_Event>? SdlPollEvent;
-    public event Action? WindowSizeChangedEvent;
-
     public void Initialize()
     {
         SdlInitialization.TryInitializeSdl(SDL_InitFlags.SDL_INIT_VIDEO |
@@ -35,6 +32,8 @@ public sealed class Engine : IDisposable
 
     public void AddWindow(Window window)
     {
+        window.OnRequestClose = _WindowsToRemove.Add;
+        window.OnRequestExitProgram = RequestExit;
         _Windows.Add(window);
     }
 
@@ -50,7 +49,7 @@ public sealed class Engine : IDisposable
         FixedUpdateInterval = 1.0f / FixedUpdatesPerSecond;
     }
 
-    public void Exit()
+    private void RequestExit()
     {
         _EngineIsRunning = false;
     }
@@ -85,6 +84,7 @@ public sealed class Engine : IDisposable
             TryLimitFps(currentTicks);
         }
 
+        Debugging.Terminal.LogMessage(Debugging.LogLevel.Success, "Engine Exiting");
         Dispose();
     }
 
@@ -95,29 +95,26 @@ public sealed class Engine : IDisposable
         while (SDL3.SDL_PollEvent(&sdlEvent))
         {
             SDL_Event sdlEventCopy = sdlEvent;
-            SdlPollEvent?.Invoke(sdlEventCopy);
-
+            
+            Window? window = _Windows.FirstOrDefault(w => w.WindowId == sdlEventCopy.window.windowID);
             switch (sdlEvent.Type)
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-                    Window? closedWindow = _Windows.FirstOrDefault(w => w.WindowId == sdlEventCopy.window.windowID);
-                    if (closedWindow is not null)
-                    {
-                        _WindowsToRemove.Add(closedWindow);
-                    }
+                    window?.OnRequestClose?.Invoke(window);
                     break;
 
                 case SDL_EventType.SDL_EVENT_QUIT:
-                    Exit();
+                    _EngineIsRunning = false;
                     break;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
-                    Window? resizedWindow = _Windows.FirstOrDefault(w => w.WindowId == sdlEventCopy.window.windowID);
-                    if (resizedWindow is not null)
-                    {
-                        resizedWindow.SetSize(sdlEventCopy.window.data1, sdlEventCopy.window.data2);
-                        WindowSizeChangedEvent?.Invoke();
-                    }
+                    window?.SetSize(sdlEventCopy.window.data1, sdlEventCopy.window.data2);
+                    break;
+
+                default:
+                    IScene? activeScene = window?.Scenes.GetActiveScene();
+                    activeScene?.OnSdlEventProcessed(sdlEventCopy);
+                    
                     break;
             }
         }

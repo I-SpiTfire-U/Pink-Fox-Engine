@@ -23,6 +23,9 @@ public class Window : IDisposable
 
     public SceneManager Scenes { get; set; }
 
+    internal Action<Window>? OnRequestClose;
+    internal Action? OnRequestExitProgram;
+
     private bool _Disposed;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -125,6 +128,16 @@ public class Window : IDisposable
         {
             SDL3.SDL_SetWindowTitle(SdlWindow, Title);
         }
+    }
+
+    public void Close()
+    {
+        OnRequestClose?.Invoke(this);
+    }
+
+    public void ExitProgram()
+    {
+        OnRequestExitProgram?.Invoke();
     }
 
     public void Dispose()

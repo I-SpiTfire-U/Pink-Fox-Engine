@@ -1,5 +1,6 @@
 using PinkFox.Core.Scenes;
 using PinkFox.Core.Types;
+using SDL;
 
 namespace PinkFox.GameTemplate.Scenes;
 
@@ -43,7 +44,13 @@ public class Scene : IScene, IDisposable
     public void OnWindowResize(int windowWidth, int windowHeight)
     {
         // TODO: Handle logic that should respond to window size changes below:
-        
+
+    }
+    
+    public void OnSdlEventProcessed(SDL_Event sdlEvent)
+    {
+        // TODO: Process SDL events such as input below:
+
     }
 
     public void Dispose()

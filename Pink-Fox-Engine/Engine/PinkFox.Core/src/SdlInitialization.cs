@@ -68,7 +68,7 @@ public static class SdlInitialization
             return false;
         }
 
-        Terminal.LogMessage(LogLevel.Error, "Successfully allocated mixer channels");
+        Terminal.LogMessage(LogLevel.Success, "Successfully allocated mixer channels");
         return true;
     }
 

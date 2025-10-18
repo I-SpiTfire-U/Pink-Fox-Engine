@@ -70,27 +70,33 @@ cd PinkFox
 dotnet new console -n BasicGame
 cd BasicGame
 dotnet add reference ../PinkFox-Fox-Engine/Engine/PinkFox.Core/PinkFox.Core.csproj
+dotnet package add ppy.SDL3-CS
 mkdir Assets
 ```
 
 **3.** Set Up Your Program.cs
 
 ```cs
+using PinkFox.Core;
+using PinkFox.Core.Types;
+
+namespace BasicGame;
+
 public class Program
 {
     public static void Main()
     {
-        ResourceManager.LoadResources();
-
         const int WindowWidth = 1600;
         const int WindowHeight = 900;
+
+        using Engine engine = new();
+        engine.Initialize();
+
+        ResourceManager.LoadResources();
 
         Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
         mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));
         mainWindow.Scenes.PushScene("MainScene");
-
-        using Engine engine = new();
-        engine.Initialize();
 
         engine.AddWindow(mainWindow);
 
@@ -106,6 +112,12 @@ public class Program
 **4.** Create a Basic Scene
 
 ```cs
+using PinkFox.Core.Scenes;
+using PinkFox.Core.Types;
+using SDL;
+
+namespace BasicGame;
+
 public class Scene : IScene, IDisposable
 {
     public bool HasBeenLoaded { get; set; }
@@ -119,15 +131,41 @@ public class Scene : IScene, IDisposable
         Window = window;
     }
 
-    public void LoadContent() { }
+    public void LoadContent()
+    {
+        // TODO: Load game assets such as textures, audio, and other content here:
+        
+    }
 
-    public void Update(float deltaTime) { }
+    public void Update(float deltaTime)
+    {
+        // TODO: Update game logic that runs every frame, such as input handling, animations, or timers below:
 
-    public void FixedUpdate(float fixedUpdateInterval) { }
+    }
 
-    public void Render(float deltaTime) { }
+    public void FixedUpdate(float fixedUpdateInterval)
+    {
+        // TODO: Update physics or other fixed-timestep systems below:
 
-    public void OnWindowResize(int windowWidth, int windowHeight) { }
+    }
+
+    public void Render(float deltaTime)
+    {
+        // TODO: Draw game elements to the screen below:
+
+    }
+
+    public void OnWindowResize(int windowWidth, int windowHeight)
+    {
+        // TODO: Handle logic that should respond to window size changes below:
+
+    }
+    
+    public void OnSdlEventProcessed(SDL_Event sdlEvent)
+    {
+        // TODO: Process SDL events such as input below:
+
+    }
 
     public void Dispose()
     {
