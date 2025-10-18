@@ -14,11 +14,6 @@ public class AudioManager : IAudioManager
         Sounds = soundManager;
     }
 
-    public void Initialize()
-    {
-        
-    }
-
     public void Shutdown()
     {
         Music.Dispose();

@@ -13,9 +13,6 @@ public class Scene : IScene, IDisposable
     protected readonly Window Window;
     protected Renderer Renderer => Window.Renderer!;
 
-    protected InputManager InputManager;
-    protected AudioManager AudioManager;
-
     protected Texture2D PinkFoxLogoTexture;
     protected float PinkFoxLogoAngle = 0;
 
@@ -24,8 +21,6 @@ public class Scene : IScene, IDisposable
     public Scene(Window window)
     {
         Window = window;
-        InputManager = new();
-        AudioManager = new(new MusicManager(), new SoundManager());
 
         PinkFoxLogoTexture = Texture2D.FromResource("PinkFoxIcon.png", Renderer);
     }
@@ -33,36 +28,36 @@ public class Scene : IScene, IDisposable
     public void LoadContent()
     {
         // TODO: Load game assets such as textures, audio, and other content here:
+        
         Sound bonk = Sound.FromResource("Bonk.ogg");
-        AudioManager.Sounds.RegisterSound("Bonk", bonk);
+        Window.GetAudioManager().Sounds.RegisterSound("Bonk", bonk);
     }
 
     public void Update(float deltaTime)
     {
         // TODO: Update game logic that runs every frame, such as input handling, animations, or timers below:
 
-        if (InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_Q))
+        if (Window.GetInputManager().Keyboard.IsKeyDown(SDL_Keycode.SDLK_Q))
         {
-            // Should quit the program
             Window.Close();
         }
 
-        if (InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_LEFT))
+        if (Window.GetInputManager().Keyboard.IsKeyHeld(SDL_Keycode.SDLK_LEFT))
         {
             PinkFoxLogoAngle -= 1f;
         }
 
-        if (InputManager.Keyboard.IsKeyHeld(SDL_Keycode.SDLK_RIGHT))
+        if (Window.GetInputManager().Keyboard.IsKeyHeld(SDL_Keycode.SDLK_RIGHT))
         {
             PinkFoxLogoAngle += 1f;
         }
 
-        if (InputManager.Keyboard.IsKeyDown(SDL_Keycode.SDLK_B))
+        if (Window.GetInputManager().Keyboard.IsKeyDown(SDL_Keycode.SDLK_B))
         {
-            AudioManager.Sounds.PlaySound("Bonk");
+            Window.GetAudioManager().Sounds.PlaySound("Bonk");
         }
 
-        InputManager.Clear();
+        Window.GetInputManager().Clear();
     }
 
     public void FixedUpdate(float fixedUpdateInterval)
@@ -76,11 +71,6 @@ public class Scene : IScene, IDisposable
         // TODO: Draw game elements to the screen below:
 
         PinkFoxLogoTexture.Draw(Renderer, new FRect(0, 0, PinkFoxLogoTexture.Width, PinkFoxLogoTexture.Height), new FRect(0, 0, PinkFoxLogoTexture.Width, PinkFoxLogoTexture.Height), PinkFoxLogoAngle);
-    }
-
-    public void OnSdlEventProcessed(SDL_Event sdlEvent)
-    {
-        InputManager.ProcessEvent(sdlEvent);
     }
 
     public void Dispose()

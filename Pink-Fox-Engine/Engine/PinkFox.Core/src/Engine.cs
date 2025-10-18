@@ -95,8 +95,10 @@ public sealed class Engine : IDisposable
         while (SDL3.SDL_PollEvent(&sdlEvent))
         {
             SDL_Event sdlEventCopy = sdlEvent;
-            
+
             Window? window = _Windows.FirstOrDefault(w => w.WindowId == sdlEventCopy.window.windowID);
+            window?.ProcessEvent(sdlEventCopy);
+
             switch (sdlEvent.Type)
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -113,8 +115,6 @@ public sealed class Engine : IDisposable
 
                 default:
                     IScene? activeScene = window?.Scenes.GetActiveScene();
-                    activeScene?.OnSdlEventProcessed(sdlEventCopy);
-                    
                     break;
             }
         }

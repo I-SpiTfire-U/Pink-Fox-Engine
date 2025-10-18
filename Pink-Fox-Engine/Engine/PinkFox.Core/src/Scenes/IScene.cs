@@ -11,6 +11,4 @@ public interface IScene : IDisposable
     public void Update(float deltaTime);
     public void FixedUpdate(float fixedUpdateInterval);
     public void Render(float deltaTime);
-
-    public void OnSdlEventProcessed(SDL_Event sdlEvent);
 }

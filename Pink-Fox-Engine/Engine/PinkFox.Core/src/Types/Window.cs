@@ -1,6 +1,8 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using PinkFox.Core.Debugging;
+using PinkFox.Core.Modules.Audio;
+using PinkFox.Core.Modules.Input;
 using PinkFox.Core.Scenes;
 using SDL;
 
@@ -26,6 +28,9 @@ public class Window : IDisposable
     internal Action<Window>? OnRequestClose;
     internal Action? OnRequestExitProgram;
 
+    private IInputManager? InputManager;
+    private IAudioManager? AudioManager;
+
     private bool _Disposed;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -49,6 +54,16 @@ public class Window : IDisposable
             Terminal.LogMessage(LogLevel.Success, $"Window icon set");
             SetIcon(iconResource);
         }
+    }
+
+    public void AttachAudioManager(IAudioManager audioManager)
+    {
+        AudioManager = audioManager;
+    }
+
+    public void AttachInputManager(IInputManager inputManager)
+    {
+        InputManager = inputManager;
     }
 
     public void AttachRenderer(Renderer renderer)
@@ -138,6 +153,31 @@ public class Window : IDisposable
     public void ExitProgram()
     {
         OnRequestExitProgram?.Invoke();
+    }
+
+    public void ProcessEvent(SDL_Event sdlEvent)
+    {
+        InputManager?.ProcessEvent(sdlEvent);
+    }
+
+    public IAudioManager GetAudioManager()
+    {
+        if (AudioManager is null)
+        {
+            Terminal.LogMessage(LogLevel.Error, $"Audio manager for window '{Title}' is null");
+            throw new NullReferenceException();
+        }
+        return AudioManager;
+    }
+
+    public IInputManager GetInputManager()
+    {
+        if (InputManager is null)
+        {
+            Terminal.LogMessage(LogLevel.Error, $"Input manager for window '{Title}' is null");
+            throw new NullReferenceException();
+        }
+        return InputManager;
     }
 
     public void Dispose()

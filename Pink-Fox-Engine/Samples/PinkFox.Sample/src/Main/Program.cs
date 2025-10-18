@@ -1,5 +1,7 @@
+using PinkFox.Audio;
 using PinkFox.Core;
 using PinkFox.Core.Types;
+using PinkFox.Input;
 using PinkFox.Sample.Scenes;
 
 namespace PinkFox.Sample.Main;
@@ -17,6 +19,8 @@ public class Program
         ResourceManager.LoadResources();
 
         Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
+        mainWindow.AttachAudioManager(new AudioManager(new MusicManager(), new SoundManager()));
+        mainWindow.AttachInputManager(new InputManager());
         mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));
         mainWindow.Scenes.PushScene("MainScene");
 
