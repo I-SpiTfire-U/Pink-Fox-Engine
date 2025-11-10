@@ -103,20 +103,18 @@ public sealed class Engine : IDisposable
             {
                 case SDL_EventType.SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                     window?.OnRequestClose?.Invoke(window);
-                    break;
+                    continue;
 
                 case SDL_EventType.SDL_EVENT_QUIT:
                     _EngineIsRunning = false;
-                    break;
+                    continue;
 
                 case SDL_EventType.SDL_EVENT_WINDOW_RESIZED:
                     window?.SetSize(sdlEventCopy.window.data1, sdlEventCopy.window.data2);
-                    break;
-
-                default:
-                    IScene? activeScene = window?.Scenes.GetActiveScene();
-                    break;
+                    continue;
             }
+
+            IScene? activeScene = window?.Scenes.GetActiveScene();
         }
     }
 
@@ -137,7 +135,7 @@ public sealed class Engine : IDisposable
         {
             return;
         }
-        
+
         if (window.Renderer.VirtualRenderer is null)
         {
             SDL3.SDL_SetRenderDrawColor(window.Renderer, window.Renderer.ClearColor.r, window.Renderer.ClearColor.g, window.Renderer.ClearColor.b, window.Renderer.ClearColor.a);
@@ -150,7 +148,7 @@ public sealed class Engine : IDisposable
             window.Scenes.Render(deltaTime);
             window.Renderer.EndVirtualRenderer();
         }
-        
+
         SDL3.SDL_RenderPresent(window.Renderer);
     }
 
@@ -160,7 +158,7 @@ public sealed class Engine : IDisposable
         {
             return;
         }
-        
+
         float frameTime = SDL3.SDL_GetTicks() - currentTicks;
         float delay = TargetFrameTime * 1000 - frameTime;
 

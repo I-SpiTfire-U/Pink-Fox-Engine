@@ -1,8 +1,11 @@
+using System.Numerics;
 using PinkFox.Audio;
 using PinkFox.Core.Scenes;
 using PinkFox.Core.Types;
+using PinkFox.Graphics;
+using PinkFox.Graphics.Fonts;
 using PinkFox.Graphics.Rendering;
-using PinkFox.Input;
+using PinkFox.Input.InputDevices;
 using SDL;
 
 namespace PinkFox.Sample.Scenes;
@@ -13,8 +16,11 @@ public class Scene : IScene, IDisposable
     protected readonly Window Window;
     protected Renderer Renderer => Window.Renderer!;
 
-    protected Texture2D PinkFoxLogoTexture;
-    protected float PinkFoxLogoAngle = 0;
+    protected Sprite PinkFoxLogo;
+    protected BoxSelect BoxSelect;
+    protected Texture2D Shape;
+    protected BitmapFont TestFont;
+    protected Label TestLabel;
 
     private bool _Disposed;
 
@@ -22,7 +28,12 @@ public class Scene : IScene, IDisposable
     {
         Window = window;
 
-        PinkFoxLogoTexture = Texture2D.FromResource("PinkFoxIcon.png", Renderer);
+        PinkFoxLogo = new(Texture2D.FromResource("PinkFoxIcon.png", Renderer), Vector2.Zero, 0f);
+        BoxSelect = new BoxSelect(new Texture2D(Renderer, (int)Window.Size.X, (int)Window.Size.Y), 5);
+        Shape = TextureFactory.CreateCircleOutline(Renderer, 100, 100, 3, Color.White);
+
+        TestFont = BitmapFont.FromFontResource("FortalesiaScript.font", Renderer);
+        TestLabel = new(TestFont, "Hello, World!", 64, new Vector2(200, 100));
     }
 
     public void LoadContent()
@@ -31,31 +42,29 @@ public class Scene : IScene, IDisposable
         
         Sound bonk = Sound.FromResource("Bonk.ogg");
         Window.GetAudioManager().Sounds.RegisterSound("Bonk", bonk);
-    }
+    } 
 
     public void Update(float deltaTime)
     {
         // TODO: Update game logic that runs every frame, such as input handling, animations, or timers below:
 
-        if (Window.GetInputManager().Keyboard.IsKeyDown(SDL_Keycode.SDLK_Q))
+        TestLabel.Update(deltaTime);
+
+        Keyboard keyboard = (Keyboard)Window.GetInputManager().Keyboard;
+
+        PinkFoxLogo.Update(deltaTime, keyboard);
+
+        if (keyboard.IsKeyHeld(SDL_Keycode.SDLK_Q))
         {
-            Window.Close();
+            Window.ExitProgram();
         }
 
-        if (Window.GetInputManager().Keyboard.IsKeyHeld(SDL_Keycode.SDLK_LEFT))
-        {
-            PinkFoxLogoAngle -= 1f;
-        }
-
-        if (Window.GetInputManager().Keyboard.IsKeyHeld(SDL_Keycode.SDLK_RIGHT))
-        {
-            PinkFoxLogoAngle += 1f;
-        }
-
-        if (Window.GetInputManager().Keyboard.IsKeyDown(SDL_Keycode.SDLK_B))
+        if (keyboard.IsKeyDown(SDL_Keycode.SDLK_B))
         {
             Window.GetAudioManager().Sounds.PlaySound("Bonk");
         }
+
+        BoxSelect.Update(Renderer, Window.GetInputManager().Mouse);
 
         Window.GetInputManager().Clear();
     }
@@ -70,7 +79,12 @@ public class Scene : IScene, IDisposable
     {
         // TODO: Draw game elements to the screen below:
 
-        PinkFoxLogoTexture.Draw(Renderer, new FRect(0, 0, PinkFoxLogoTexture.Width, PinkFoxLogoTexture.Height), new FRect(0, 0, PinkFoxLogoTexture.Width, PinkFoxLogoTexture.Height), PinkFoxLogoAngle);
+        PinkFoxLogo.Render(Renderer);
+        BoxSelect.Render(Renderer);
+
+        Shape.Draw(Renderer, new FRect(0, 0, Shape.Width, Shape.Height), new FRect(100, 100, Shape.Width, Shape.Height));
+        Shape.Draw(Renderer, new FRect(0, 0, Shape.Width, Shape.Height), new FRect(150, 150, Shape.Width, Shape.Height));
+        TestLabel.Draw(Renderer);
     }
 
     public void Dispose()

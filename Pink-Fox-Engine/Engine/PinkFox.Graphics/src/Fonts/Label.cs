@@ -96,7 +96,7 @@ public class Label
         }
     }
 
-    public unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null, float maxWidth = float.MaxValue)
+    public unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null)
     {
         if (string.IsNullOrEmpty(Text))
         {
@@ -105,89 +105,36 @@ public class Label
 
         Vector2 screenPosition = camera2D?.WorldToScreen(Position) ?? Position;
         float zoom = camera2D?.Zoom ?? 1f;
-
-        float cursorX = screenPosition.X;
-        float cursorY = screenPosition.Y - _Font.FontData.Config.BaseLine * _Scale * zoom;
-        char previousChar = '\0';
-
         float scaleWithZoom = _Scale * zoom;
 
+        float cursorX = screenPosition.X;
+        float cursorY = screenPosition.Y;
         float lineHeight = _Font.LineHeight * scaleWithZoom;
-        float spaceAdvance = _Font.SpaceAdvance * scaleWithZoom;
-        float baseLine = _Font.FontData.Config.BaseLine * scaleWithZoom;
-
-        float currentWidth = 0f;
 
         for (int i = 0; i < _CurrentCharCount; i++)
         {
             char c = Text[i];
-
             if (c == '\n')
             {
                 cursorX = screenPosition.X;
                 cursorY += lineHeight;
-                previousChar = '\0';
-                currentWidth = 0f;
                 continue;
             }
 
-            float charAdvance = 0f;
-
-            if (c == ' ')
-            {
-                charAdvance = spaceAdvance;
-            }
-            else if (_Font.Characters.TryGetValue(c, out GlyphInfo? glyphInfo))
-            {
-                charAdvance = glyphInfo.XAdvance * scaleWithZoom;
-
-                if (previousChar != '\0' && _Font.KerningPairs.TryGetValue((previousChar, c), out int kernAmount))
-                {
-                    cursorX += kernAmount * scaleWithZoom;
-                }
-            }
-            else
+            if (!_Font.Characters.TryGetValue(c, out GlyphInfo? glyph))
             {
                 continue;
             }
 
-            if (currentWidth + charAdvance > maxWidth)
-            {
-                cursorX = screenPosition.X;
-                cursorY += lineHeight;
-                currentWidth = 0f;
-                previousChar = '\0';
-            }
-
-            if (c == ' ')
-            {
-                cursorX += spaceAdvance;
-                currentWidth += spaceAdvance;
-                previousChar = '\0';
-                continue;
-            }
-
-            if (!_Font.Characters.TryGetValue(c, out GlyphInfo? drawGlyph))
-            {
-                continue;
-            }
-
-            if (previousChar != '\0' && _Font.KerningPairs.TryGetValue((previousChar, c), out int kern))
-            {
-                cursorX += kern * scaleWithZoom;
-                currentWidth += kern * scaleWithZoom;
-            }
-
-            float drawY = cursorY + baseLine + drawGlyph.YOffset * scaleWithZoom;
+            float drawX = cursorX + glyph.XOffset * scaleWithZoom;
+            float drawY = cursorY + (_Font.FontData.Config.LineSpacing - glyph.YOffset) * scaleWithZoom; 
 
             Vector2 shakeOffset = GetShakeOffset();
-            FRect destRect = new(cursorX + drawGlyph.XOffset * scaleWithZoom + shakeOffset.X, drawY + shakeOffset.Y, drawGlyph.SourceRect.w * scaleWithZoom, drawGlyph.SourceRect.h * scaleWithZoom);
+            FRect dest = new(drawX + shakeOffset.X, drawY + shakeOffset.Y, glyph.SourceRect.w * scaleWithZoom, glyph.SourceRect.h * scaleWithZoom);
 
-            _Font.Texture.Draw(renderer, drawGlyph.SourceRect, destRect);
+            _Font.Texture.Draw(renderer, glyph.SourceRect, dest);
 
-            cursorX += drawGlyph.XAdvance * scaleWithZoom;
-            previousChar = c;
-            currentWidth += drawGlyph.XAdvance * scaleWithZoom;
+            cursorX += glyph.XAdvance * scaleWithZoom;
         }
     }
 

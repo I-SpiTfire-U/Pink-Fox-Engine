@@ -1,6 +1,7 @@
+using System.Numerics;
 using PinkFox.Core.Scenes;
 using PinkFox.Core.Types;
-using SDL;
+using PinkFox.Graphics.Fonts;
 
 namespace PinkFox.GameTemplate.Scenes;
 
@@ -9,12 +10,18 @@ public class Scene : IScene, IDisposable
     public bool HasBeenLoaded { get; set; }
     protected readonly Window Window;
     protected Renderer Renderer => Window.Renderer!;
+
+    protected BitmapFont LTInternetFont;
+    protected Label SampleLabel;
     
     private bool _Disposed;
 
     public Scene(Window window)
     {
         Window = window;
+
+        LTInternetFont = BitmapFont.FromFontResource("LTInternet-Regular.font", Renderer);
+        SampleLabel = new Label(LTInternetFont, "Hello, World!", 32, new Vector2(10, 10));
     }
 
     public void LoadContent()
@@ -39,6 +46,7 @@ public class Scene : IScene, IDisposable
     {
         // TODO: Draw game elements to the screen below:
 
+        SampleLabel.Draw(Renderer, null);
     }
 
     public void Dispose()

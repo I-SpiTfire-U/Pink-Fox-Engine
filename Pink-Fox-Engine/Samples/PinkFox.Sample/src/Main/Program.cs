@@ -12,13 +12,14 @@ public class Program
     {
         const int WindowWidth = 1600;
         const int WindowHeight = 900;
+        const string WindowTitle = "PinkFox Template";
         
         using Engine engine = new();
         engine.Initialize();
 
         ResourceManager.LoadResources();
 
-        Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
+        Window mainWindow = Window.Create(WindowWidth, WindowHeight, WindowTitle, "PinkFoxIcon.png", 0, null);
         mainWindow.AttachAudioManager(new AudioManager(new MusicManager(), new SoundManager()));
         mainWindow.AttachInputManager(new InputManager());
         mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));

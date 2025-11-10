@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -9,9 +10,13 @@
         <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="ppy.SDL3-CS" Version="2025.703.0" />
-        <PackageReference Include="ppy.SDL3_image-CS" Version="2025.703.0" />
-        <PackageReference Include="ppy.SDL3_mixer-CS" Version="2025.703.0" />
-        <PackageReference Include="ppy.SDL3_ttf-CS" Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_image-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_mixer-CS"
+                          Version="2025.703.0" />
+        <PackageReference Include="ppy.SDL3_ttf-CS"
+                          Version="2025.703.0" />
     </ItemGroup>
 </Project>

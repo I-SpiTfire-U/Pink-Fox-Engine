@@ -10,13 +10,14 @@ public class Program
     {
         const int WindowWidth = 1600;
         const int WindowHeight = 900;
+        const string WindowTitle = "PinkFox Game Template";
 
         using Engine engine = new();
         engine.Initialize();
 
         ResourceManager.LoadResources();
 
-        Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
+        Window mainWindow = Window.Create(WindowWidth, WindowHeight, WindowTitle, "PinkFoxIcon.png", 0, null);
         mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));
         mainWindow.Scenes.PushScene("MainScene");
 

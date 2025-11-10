@@ -46,7 +46,7 @@ I’d love to see what people create with the engine, and I welcome any feedback
 - [ ] Optimize more where possible.
 - [ ] Add documentation comments.
 - [ ] Improve and optimize input system more.
-- [ ] Add built-in functionality for converting font files to bitmap fonts so that developers don't have to use external tools
+- [X] Add built-in functionality for converting font files to bitmap fonts so that developers don't have to use external tools
 to do so.
 - [ ] Add SAT collision support on top of the basic collision system that already exists.
 - [ ] Implement more debugging/crash report features including debug messages that draw to the window.
@@ -79,8 +79,9 @@ mkdir Assets
 ```cs
 using PinkFox.Core;
 using PinkFox.Core.Types;
+using PinkFox.GameTemplate.Scenes;
 
-namespace BasicGame;
+namespace PinkFox.GameTemplate.Main;
 
 public class Program
 {
@@ -88,13 +89,14 @@ public class Program
     {
         const int WindowWidth = 1600;
         const int WindowHeight = 900;
+        const string WindowTitle = "PinkFox Game Template";
 
         using Engine engine = new();
         engine.Initialize();
 
         ResourceManager.LoadResources();
 
-        Window mainWindow = Window.Create(WindowWidth, WindowHeight, "PinkFox Test", "PinkFoxIcon.png", 0, null);
+        Window mainWindow = Window.Create(WindowWidth, WindowHeight, WindowTitle, null, 0, null);
         mainWindow.Scenes.RegisterScene("MainScene", new Scene(mainWindow));
         mainWindow.Scenes.PushScene("MainScene");
 

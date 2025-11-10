@@ -17,10 +17,27 @@ public class BitmapFont : IDisposable
 
     private bool _Disposed;
 
-    public BitmapFont(Renderer renderer, string textureResourceName, string fontResourceName)
+    public static unsafe BitmapFont FromFontResource(string resourceName, Renderer renderer)
     {
-        Texture = Texture2D.FromResource(textureResourceName, renderer);
-        FontData = BitmapFontData.FromResource(fontResourceName);
+        (nint surface, string jsonText) = Core.ResourceManager.CreateFontArchiveFromResource(resourceName);
+        Texture2D texture = new((SDL_Surface*)surface, renderer);
+        BitmapFontData fontData = BitmapFontData.FromJson(jsonText);
+
+        return new BitmapFont(texture, fontData);
+    }
+
+    public static BitmapFont FromMultipleResources(string textureResourceName, string fontResourceName, Renderer renderer)
+    {
+        Texture2D texture = Texture2D.FromResource(textureResourceName, renderer);
+        BitmapFontData fontData = BitmapFontData.FromResource(fontResourceName);
+
+        return new BitmapFont(texture, fontData);
+    }
+
+    public BitmapFont(Texture2D texture, BitmapFontData bitmapFontData)
+    {
+        Texture = texture;
+        FontData = bitmapFontData;
 
         LineHeight = FontData.Config.CharHeight + FontData.Config.LineSpacing;
         if (SpaceAdvance == 0)
