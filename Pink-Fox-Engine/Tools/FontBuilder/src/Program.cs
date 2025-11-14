@@ -121,7 +121,7 @@ public class Program
 
             float RenderX = cursorX - bounds.Left;
             float RenderY = cursorY - bounds.Top;
-            canvas.RenderText(str, RenderX, RenderY, font, paint);
+            canvas.DrawText(str, RenderX, RenderY, font, paint);
 
             rowHeight = Math.Max(rowHeight, h + padding);
 
