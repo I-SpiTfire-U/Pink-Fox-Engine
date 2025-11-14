@@ -13,11 +13,11 @@ public class SoundManager : ISoundManager, IDisposable
     {
         if (_SoundDictionary.ContainsKey(id))
         {
-            Terminal.LogMessage(LogLevel.Warning, $"sound with the ID '{id}' already exists, skipping");
+            Terminal.LogMessage(LogLevel.Warning, $"Sound with the ID '{id}' already exists, skipping");
             return;
         }
         _SoundDictionary[id] = sound;
-        Terminal.LogMessage(LogLevel.Success, $"sound '{id}' registered");
+        Terminal.LogMessage(LogLevel.Success, $"Sound '{id}' registered");
     }
 
     public void UnregisterSound(string id)

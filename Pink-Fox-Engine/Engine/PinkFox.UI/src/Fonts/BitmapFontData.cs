@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace PinkFox.Graphics.Fonts;
+namespace PinkFox.UI.Fonts;
 
 public class BitmapFontData
 {

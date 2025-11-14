@@ -40,7 +40,7 @@ public class Sprite2D : ISprite2D, IDisposable
         IsVisible = isVisible;
     }
 
-    public unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null)
+    public unsafe void Render(Renderer renderer, ICamera2D? camera2D = null)
     {
         if (!IsVisible)
         {
@@ -53,7 +53,7 @@ public class Sprite2D : ISprite2D, IDisposable
         FRect destinationRect = new(topLeft.X, topLeft.Y, Scale.X * zoom, Scale.Y * zoom);
         FPoint zoomedPosition = new(Position.X * zoom, Position.Y * zoom);
 
-        Texture.Draw(renderer, destinationRect, SourceRect, RotationDegrees, zoomedPosition, FlipMode);
+        Texture.Render(renderer, destinationRect, SourceRect, RotationDegrees, zoomedPosition, FlipMode);
     }
 
     public void SetNewTexture(Texture2D texture)

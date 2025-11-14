@@ -51,7 +51,6 @@ public class Window : IDisposable
         CreateWindow();
         if (!string.IsNullOrEmpty(iconResource))
         {
-            Terminal.LogMessage(LogLevel.Success, $"Window icon set");
             SetIcon(iconResource);
         }
     }

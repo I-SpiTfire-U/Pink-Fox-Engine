@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Text.Json;
-using PinkFox.Graphics.Fonts;
+using PinkFox.UI.Fonts;
 using SkiaSharp;
 
 namespace PinkFox.Tools.FontBuilder;
@@ -119,9 +119,9 @@ public class Program
                 rowHeight = 0;
             }
 
-            float drawX = cursorX - bounds.Left;
-            float drawY = cursorY - bounds.Top;
-            canvas.DrawText(str, drawX, drawY, font, paint);
+            float RenderX = cursorX - bounds.Left;
+            float RenderY = cursorY - bounds.Top;
+            canvas.RenderText(str, RenderX, RenderY, font, paint);
 
             rowHeight = Math.Max(rowHeight, h + padding);
 

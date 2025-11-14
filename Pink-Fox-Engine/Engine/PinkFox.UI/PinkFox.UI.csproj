@@ -8,6 +8,7 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\Engine\PinkFox.Core\PinkFox.Core.csproj" />
+        <ProjectReference Include="../../Engine/PinkFox.Graphics/PinkFox.Graphics.csproj" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="ppy.SDL3-CS"

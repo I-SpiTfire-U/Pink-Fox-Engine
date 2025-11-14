@@ -1,7 +1,8 @@
 using System.Numerics;
 using PinkFox.Core.Scenes;
 using PinkFox.Core.Types;
-using PinkFox.Graphics.Fonts;
+using PinkFox.UI.Fonts.Bitmap;
+using PinkFox.UI.Types;
 
 namespace PinkFox.GameTemplate.Scenes;
 
@@ -12,7 +13,7 @@ public class Scene : IScene, IDisposable
     protected Renderer Renderer => Window.Renderer!;
 
     protected BitmapFont LTInternetFont;
-    protected Label SampleLabel;
+    protected AnimatedLabel SampleLabel;
     
     private bool _Disposed;
 
@@ -44,9 +45,9 @@ public class Scene : IScene, IDisposable
 
     public void Render(float deltaTime)
     {
-        // TODO: Draw game elements to the screen below:
+        // TODO: Render game elements to the screen below:
 
-        SampleLabel.Draw(Renderer, null);
+        SampleLabel.Render(Renderer, null);
     }
 
     public void Dispose()

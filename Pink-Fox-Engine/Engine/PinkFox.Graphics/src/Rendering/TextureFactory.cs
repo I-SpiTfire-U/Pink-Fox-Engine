@@ -131,7 +131,7 @@ public static class TextureFactory
 
         for (int y = 0; y < height; y++)
         {
-            int maxX = y * width / height; // right edge of the triangle at this row
+            int maxX = y * width / height;
             for (int x = 0; x <= maxX; x++)
             {
                 SDL_FRect point = new() { x = x, y = y, w = 1, h = 1 };
@@ -161,10 +161,8 @@ public static unsafe Texture2D CreateRightAngledTriangleOutline(Renderer rendere
 
         for (int x = 0; x <= maxX; x++)
         {
-            // Distance to hypotenuse
             float distHyp = MathF.Abs(height * x - width * y) / diagLength;
 
-            // Distance to edges
             bool onLeftEdge = x < thickness;
             bool onBottomEdge = y >= height - thickness;
             bool onHypotenuse = distHyp <= thickness;
@@ -230,7 +228,6 @@ public static unsafe Texture2D CreateEquilateralTriangleOutline(Renderer rendere
         int leftBound = (int)(halfWidth - ny * halfWidth);
         int rightBound = (int)(halfWidth + ny * halfWidth);
 
-        // Draw the left and right edges only
         for (int t = 0; t < thickness; t++)
         {
             if (leftBound + t <= rightBound - t)
@@ -243,8 +240,7 @@ public static unsafe Texture2D CreateEquilateralTriangleOutline(Renderer rendere
         }
     }
 
-    // Draw the bottom edge using the same left/right bounds as the last row
-    float nyBottom = 1f; // bottom row
+    float nyBottom = 1f;
     int leftBoundBottom = (int)(halfWidth - nyBottom * halfWidth);
     int rightBoundBottom = (int)(halfWidth + nyBottom * halfWidth);
 

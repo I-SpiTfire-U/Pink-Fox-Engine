@@ -2,7 +2,7 @@ using PinkFox.Graphics.Rendering;
 using SDL;
 using PinkFox.Core.Types;
 
-namespace PinkFox.Graphics.Fonts;
+namespace PinkFox.UI.Fonts;
 
 public class BitmapFont : IDisposable
 {

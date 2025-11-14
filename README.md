@@ -23,7 +23,7 @@ I’d love to see what people create with the engine, and I welcome any feedback
 - [X] Create a scene manager and a basic scene interface to use for different scene types in the future
 - [X] Set up interfaces for components such as audio managers, input managers, and others
 - [X] Create a few basic collision object types and a simple collision system to test for collisions between them
-- [X] Create a basic texture class to use for any future graphics drawing needs and make a few functions for creating basic shape textures like rectangles and circles
+- [X] Create a basic texture class to use for any future graphics Rendering needs and make a few functions for creating basic shape textures like rectangles and circles
 - [X] Create a sprite class and an interface for it to inherit off of that other sprite types can use such as an animated sprite
 - [X] Create an animation system that utilizes texture atlases
 - [X] Abstract the main engine code away from the developer so they can focus on their game instead of messing with engine settings
@@ -31,7 +31,7 @@ I’d love to see what people create with the engine, and I welcome any feedback
 - [X] Create an audio system with music track and sound effect classes that can be played
 - [X] Create an input system that manages keyboard and mouse input, but can support gamepads and anything else later on
 - [X] Add gamepad support to the input system that can handle multiple gamepads at once
-- [X] Set up a basic UI text system for drawing text to the screen
+- [X] Set up a basic UI text system for Rendering text to the screen
 - [X] Add a bitmap font system as it's more efficient and customizable than the PinkFox.UI font system.
 - [X] Modify the engine to use embedded resources as opposed to loading external files.
 - [X] Add more functionality to the text UI system and optimize it.
@@ -49,7 +49,7 @@ I’d love to see what people create with the engine, and I welcome any feedback
 - [X] Add built-in functionality for converting font files to bitmap fonts so that developers don't have to use external tools
 to do so.
 - [ ] Add SAT collision support on top of the basic collision system that already exists.
-- [ ] Implement more debugging/crash report features including debug messages that draw to the window.
+- [ ] Implement more debugging/crash report features including debug messages that Render to the window.
 - [ ] Separate module concerns better and make specific sections of the engine more modular.
 - [ ] Get an actual logo created for the engine.
 
@@ -153,7 +153,7 @@ public class Scene : IScene, IDisposable
 
     public void Render(float deltaTime)
     {
-        // TODO: Draw game elements to the screen below:
+        // TODO: Render game elements to the screen below:
 
     }
 

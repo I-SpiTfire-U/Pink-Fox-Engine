@@ -1,6 +1,6 @@
 using SDL;
 
-namespace PinkFox.Graphics.Fonts;
+namespace PinkFox.UI.Fonts;
 
 public class GlyphInfo
 {

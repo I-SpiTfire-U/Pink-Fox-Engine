@@ -1,4 +1,4 @@
-namespace PinkFox.Graphics.Fonts;
+namespace PinkFox.UI.Fonts;
 
 public class Kerning
 {

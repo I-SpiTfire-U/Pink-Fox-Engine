@@ -35,19 +35,19 @@ public interface ISprite2D : IDisposable
     /// <summary>Flipping mode for sprite rendering.</summary>
     SDL_FlipMode FlipMode { get; }
 
-    /// <summary>Rendering layer / draw order.</summary>
+    /// <summary>Rendering layer / Render order.</summary>
     public int Layer { get; }
 
-    /// <summary>Visibility flag indicating if the sprite should be drawn.</summary>
+    /// <summary>Visibility flag indicating if the sprite should be Rendern.</summary>
     bool IsVisible { get; }
 
     /// <summary>Rotation angle in degrees.</summary>
     double RotationDegrees { get; }
 
     /// <summary>
-    /// Draws the sprite using the given SDL renderer and optional camera.
+    /// Renders the sprite using the given SDL renderer and optional camera.
     /// </summary>
     /// <param name="renderer">Pointer to the SDL renderer.</param>
     /// <param name="camera2D">Optional camera for coordinate transformations.</param>
-    unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null);
+    unsafe void Render(Renderer renderer, ICamera2D? camera2D = null);
 }

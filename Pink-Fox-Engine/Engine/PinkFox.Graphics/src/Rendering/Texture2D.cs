@@ -57,7 +57,7 @@ public class Texture2D : IDisposable
         SDL3.SDL_SetRenderTarget(renderer, TextureHandle);
     }
 
-    public unsafe void Draw(Renderer renderer, FRect? sourceRect = null, FRect? destinationRect = null, double angle = 0d, SDL_FPoint? centerPoint = null, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE)
+    public unsafe void Render(Renderer renderer, FRect? sourceRect = null, FRect? destinationRect = null, double angle = 0d, SDL_FPoint? centerPoint = null, SDL_FlipMode flipMode = SDL_FlipMode.SDL_FLIP_NONE)
     {
         SDL_FRect* dstPtr = null;
         SDL_FRect* srcPtr = null;

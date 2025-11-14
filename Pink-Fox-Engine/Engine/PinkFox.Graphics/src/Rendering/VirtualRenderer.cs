@@ -46,22 +46,22 @@ public class VirtualRenderer : IVirtualRenderer
 
         int intScale = UseIntegerScaling ? Math.Max(1, (int)Math.Floor(scale)) : 1;
 
-        int drawW = UseIntegerScaling ? VirtualWidth * intScale : (int)(VirtualWidth * scale);
-        int drawH = UseIntegerScaling ? VirtualHeight * intScale : (int)(VirtualHeight * scale);
+        int RenderW = UseIntegerScaling ? VirtualWidth * intScale : (int)(VirtualWidth * scale);
+        int RenderH = UseIntegerScaling ? VirtualHeight * intScale : (int)(VirtualHeight * scale);
 
-        int offsetX = (winW - drawW) / 2;
-        int offsetY = (winH - drawH) / 2;
+        int offsetX = (winW - RenderW) / 2;
+        int offsetY = (winH - RenderH) / 2;
 
         SDL_FRect dest = new()
         {
             x = offsetX,
             y = offsetY,
-            w = drawW,
-            h = drawH
+            w = RenderW,
+            h = RenderH
         };
 
         SDL3.SDL_SetTextureScaleMode(_RenderTarget.TextureHandle, SDL_ScaleMode.SDL_SCALEMODE_NEAREST);
-        _RenderTarget.Draw(actualRenderer, destinationRect: dest);
+        _RenderTarget.Render(actualRenderer, destinationRect: dest);
     }
 
     public unsafe Vector2 WindowToVirtualCoords(Renderer renderer, Vector2 windowPosition)
@@ -75,11 +75,11 @@ public class VirtualRenderer : IVirtualRenderer
         float scale = Math.Min(scaleX, scaleY);
         float usedScale = UseIntegerScaling ? Math.Max(1, (int)Math.Floor(scale)) : scale;
 
-        int drawW = (int)(VirtualWidth * usedScale);
-        int drawH = (int)(VirtualHeight * usedScale);
+        int RenderW = (int)(VirtualWidth * usedScale);
+        int RenderH = (int)(VirtualHeight * usedScale);
 
-        int offsetX = (winW - drawW) / 2;
-        int offsetY = (winH - drawH) / 2;
+        int offsetX = (winW - RenderW) / 2;
+        int offsetY = (winH - RenderH) / 2;
 
         float virtualX = (windowPosition.X - offsetX) / usedScale;
         float virtualY = (windowPosition.Y - offsetY) / usedScale;
@@ -100,12 +100,12 @@ public class VirtualRenderer : IVirtualRenderer
         float scale = Math.Min(scaleX, scaleY);
         float usedScale = UseIntegerScaling ? Math.Max(1, (int)Math.Floor(scale)) : scale;
 
-        int drawW = (int)(VirtualWidth * usedScale);
-        int drawH = (int)(VirtualHeight * usedScale);
+        int RenderW = (int)(VirtualWidth * usedScale);
+        int RenderH = (int)(VirtualHeight * usedScale);
 
-        int offsetX = (winW - drawW) / 2;
-        int offsetY = (winH - drawH) / 2;
+        int offsetX = (winW - RenderW) / 2;
+        int offsetY = (winH - RenderH) / 2;
 
-        return new SDL_Rect { x = offsetX, y = offsetY, w = drawW, h = drawH };
+        return new SDL_Rect { x = offsetX, y = offsetY, w = RenderW, h = RenderH };
     }
 }

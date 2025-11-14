@@ -8,9 +8,9 @@ namespace PinkFox.Sample;
 
 public class Sprite
 {
-    protected Texture2D Texture;
-    protected Vector2 Position;
-    protected float Angle;
+    public Texture2D Texture { get; init; }
+    public Vector2 Position { get; private set; }
+    public float Angle { get; private set; }
 
     public Sprite(Texture2D texture, Vector2 position, float angle = 0f)
     {
@@ -49,7 +49,7 @@ public class Sprite
 
     public void Render(Renderer renderer)
     {
-        Texture.Draw(
+        Texture.Render(
             renderer,
             new FRect(0, 0, Texture.Width, Texture.Height),
             new FRect(Position.X, Position.Y, Texture.Width, Texture.Height),

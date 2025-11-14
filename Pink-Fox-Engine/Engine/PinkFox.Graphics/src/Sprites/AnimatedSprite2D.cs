@@ -71,7 +71,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
         }
     }
 
-    public unsafe void Draw(Renderer renderer, ICamera2D? camera2D = null)
+    public unsafe void Render(Renderer renderer, ICamera2D? camera2D = null)
     {
         if (!IsVisible)
         {
@@ -85,7 +85,7 @@ public class AnimatedSprite2D : ISprite2D, IDisposable
 
         FPoint zoomedPosition = new(Position.X * zoom, Position.Y * zoom);
 
-        Texture.Draw(renderer, destinationRect, SourceRect, RotationDegrees, zoomedPosition, FlipMode);
+        Texture.Render(renderer, destinationRect, SourceRect, RotationDegrees, zoomedPosition, FlipMode);
     }
 
     public void Dispose()
